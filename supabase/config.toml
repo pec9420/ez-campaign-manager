@@ -1,1 +1,13 @@
 project_id = "sukyrypnsoyvlxrezlgv"
+
+[functions.check-usage-limits]
+verify_jwt = true
+
+[functions.generate-content-plan]
+verify_jwt = true
+
+[functions.regenerate-post]
+verify_jwt = true
+
+[functions.generate-shot-list]
+verify_jwt = true
