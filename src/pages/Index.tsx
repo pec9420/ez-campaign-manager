@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import Navigation from '@/components/Navigation';
 import { Sparkles, Calendar, Zap, CheckCircle2 } from 'lucide-react';
 
 const Index = () => {
@@ -7,6 +8,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <Navigation />
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
@@ -112,8 +114,32 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t border-border py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2025 Content Planner. Built for busy business owners who deserve better.</p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              © 2025 Content Planner. Built for busy business owners who deserve better.
+            </p>
+            <div className="flex gap-6">
+              <button
+                onClick={() => navigate('/features')}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Features
+              </button>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Pricing
+              </button>
+              <button
+                onClick={() => navigate('/faq')}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                FAQ
+              </button>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
