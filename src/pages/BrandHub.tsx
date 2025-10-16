@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Save, Sparkles } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 
 // Zod schema for brand hub validation
 const brandHubSchema = z.object({
@@ -158,19 +158,7 @@ export default function BrandHub() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/dashboard")}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold">Brand Hub</h1>
-          </div>
+          <h1 className="text-4xl font-bold mb-2">Brand Hub</h1>
           <p className="text-muted-foreground text-lg">
             {existingHub
               ? "Update your brand profile to improve AI-generated content"
@@ -291,19 +279,11 @@ export default function BrandHub() {
               </div>
 
               {/* Submit Button */}
-              <div className="flex gap-4 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/dashboard")}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
+              <div className="pt-4">
                 <Button
                   type="submit"
                   disabled={saving}
-                  className="flex-1"
+                  className="w-full"
                 >
                   {saving ? (
                     <>
