@@ -430,7 +430,6 @@ export default function BrandHub() {
                     <CharacterCounter
                       current={businessName.length}
                       max={100}
-                      id="business_name_counter"
                     />
                   </div>
                   {errors.business_name && (
@@ -472,7 +471,6 @@ export default function BrandHub() {
                     <CharacterCounter
                       current={whatYouSell.length}
                       max={100}
-                      id="what_you_sell_counter"
                     />
                   </div>
                   {errors.what_you_sell && (
@@ -520,7 +518,6 @@ export default function BrandHub() {
                     <CharacterCounter
                       current={whatMakesUnique.length}
                       max={100}
-                      id="what_makes_unique_counter"
                     />
                   </div>
                   {errors.what_makes_unique && (
@@ -568,7 +565,6 @@ export default function BrandHub() {
                     <CharacterCounter
                       current={targetCustomer.length}
                       max={100}
-                      id="target_customer_counter"
                     />
                   </div>
                   {errors.target_customer && (
@@ -614,12 +610,11 @@ export default function BrandHub() {
                                 ? "bg-primary/10 border-primary"
                                 : "border-border"
                             }`}
-                            onClick={() => !isDisabled && toggleVibeWord(word)}
                           >
                             <Checkbox
                               id={`vibe-${word}`}
                               checked={isSelected}
-                              onCheckedChange={() => toggleVibeWord(word)}
+                              onCheckedChange={() => !isDisabled && toggleVibeWord(word)}
                               disabled={isDisabled}
                             />
                             <label
@@ -677,7 +672,6 @@ export default function BrandHub() {
                       <CharacterCounter
                         current={customVibeWords.length}
                         max={90}
-                        id="custom_vibe_words_counter"
                       />
                     </div>
                     {customWordsCount > 3 && (
