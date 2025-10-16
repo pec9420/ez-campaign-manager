@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useBeforeUnload } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -79,6 +79,7 @@ export default function BrandHub() {
   const [selectedVibeWords, setSelectedVibeWords] = useState<Set<string>>(new Set());
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const {
     register,
@@ -126,32 +127,16 @@ export default function BrandHub() {
     { capture: true }
   );
 
-  useEffect(() => {
-    // Wait for auth to finish loading before checking user
-    if (authLoading) {
-      return;
-    }
-
-    // If auth is done loading and there's no user, redirect
-    if (!user) {
-      console.log('[BrandHub] No user found, redirecting to auth');
-      navigate("/auth");
-      return;
-    }
-
-    // User is authenticated, load brand hub
-    console.log('[BrandHub] User authenticated, loading brand hub');
-    loadBrandHub();
-  }, [user, authLoading, navigate]);
-
-  const loadBrandHub = async () => {
+  const loadBrandHub = useCallback(async () => {
+    if (!user?.id) return;
+    
     try {
       setLoading(true);
 
       const { data, error } = await supabase
         .from("brand_hub")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -195,7 +180,28 @@ export default function BrandHub() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, reset]);
+
+  useEffect(() => {
+    // Wait for auth to finish loading before checking user
+    if (authLoading) {
+      return;
+    }
+
+    // If auth is done loading and there's no user, redirect
+    if (!user) {
+      console.log('[BrandHub] No user found, redirecting to auth');
+      navigate("/auth");
+      return;
+    }
+
+    // Only load once when user is available
+    if (!hasLoadedRef.current) {
+      console.log('[BrandHub] User authenticated, loading brand hub');
+      hasLoadedRef.current = true;
+      loadBrandHub();
+    }
+  }, [user, authLoading, navigate, loadBrandHub]);
 
   const onSubmit = async (data: BrandHubFormData) => {
     // Validate vibe words count
@@ -252,9 +258,6 @@ export default function BrandHub() {
       // Reset form dirty state
       reset(data);
       setSelectedVibeWords(new Set(selectedVibeWords));
-
-      // Reload data
-      await loadBrandHub();
 
       // Navigate to dashboard after short delay
       setTimeout(() => {
