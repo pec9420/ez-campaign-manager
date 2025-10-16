@@ -56,15 +56,15 @@ const brandHubSchema = z.object({
   what_you_sell: z
     .string()
     .min(10, "Please add more detail (minimum 10 characters)")
-    .max(100, "Max 100 characters"),
+    .max(250, "Max 250 characters"),
   what_makes_unique: z
     .string()
     .min(10, "Tell us more (minimum 10 characters)")
-    .max(100, "Max 100 characters"),
+    .max(250, "Max 250 characters"),
   target_customer: z
     .string()
     .min(10, "Add more detail about who you're selling to (minimum 10 characters)")
-    .max(100, "Max 100 characters"),
+    .max(250, "Max 250 characters"),
   custom_vibe_words: z.string().max(90, "Max 90 characters"),
 });
 
@@ -134,11 +134,13 @@ export default function BrandHub() {
 
     // If auth is done loading and there's no user, redirect
     if (!user) {
+      console.log('[BrandHub] No user found, redirecting to auth');
       navigate("/auth");
       return;
     }
 
     // User is authenticated, load brand hub
+    console.log('[BrandHub] User authenticated, loading brand hub');
     loadBrandHub();
   }, [user, authLoading, navigate]);
 
@@ -356,11 +358,11 @@ export default function BrandHub() {
     businessName.length >= 1 &&
     businessName.length <= 100 &&
     whatYouSell.length >= 10 &&
-    whatYouSell.length <= 100 &&
+    whatYouSell.length <= 250 &&
     whatMakesUnique.length >= 10 &&
-    whatMakesUnique.length <= 100 &&
+    whatMakesUnique.length <= 250 &&
     targetCustomer.length >= 10 &&
-    targetCustomer.length <= 100 &&
+    targetCustomer.length <= 250 &&
     vibeWordsValid &&
     customWordsCount <= 3 &&
     customVibeWords.length <= 90;
@@ -447,7 +449,7 @@ export default function BrandHub() {
                 <div className="space-y-2 mb-6">
                   <Label htmlFor="what_you_sell" className="flex items-center gap-2">
                     What do you sell? <span className="text-destructive">*</span>
-                    {whatYouSell.length >= 10 && whatYouSell.length <= 100 && (
+                    {whatYouSell.length >= 10 && whatYouSell.length <= 250 && (
                       <ValidationIndicator isValid={true} />
                     )}
                   </Label>
@@ -455,8 +457,8 @@ export default function BrandHub() {
                     id="what_you_sell"
                     placeholder="e.g., Hand-poured soy candles with natural fragrances"
                     {...register("what_you_sell")}
-                    maxLength={100}
-                    rows={2}
+                    maxLength={250}
+                    rows={3}
                     aria-required="true"
                     aria-invalid={!!errors.what_you_sell}
                     aria-describedby="what_you_sell_helper what_you_sell_counter what_you_sell_error"
@@ -470,7 +472,7 @@ export default function BrandHub() {
                     </p>
                     <CharacterCounter
                       current={whatYouSell.length}
-                      max={100}
+                      max={250}
                     />
                   </div>
                   {errors.what_you_sell && (
@@ -493,7 +495,7 @@ export default function BrandHub() {
                     What makes you unique?{" "}
                     <span className="text-destructive">*</span>
                     {whatMakesUnique.length >= 10 &&
-                      whatMakesUnique.length <= 100 && (
+                      whatMakesUnique.length <= 250 && (
                         <ValidationIndicator isValid={true} />
                       )}
                   </Label>
@@ -501,8 +503,8 @@ export default function BrandHub() {
                     id="what_makes_unique"
                     placeholder="e.g., Small-batch candles inspired by cozy moments and seasonal vibes"
                     {...register("what_makes_unique")}
-                    maxLength={100}
-                    rows={3}
+                    maxLength={250}
+                    rows={4}
                     aria-required="true"
                     aria-invalid={!!errors.what_makes_unique}
                     aria-describedby="what_makes_unique_helper what_makes_unique_counter what_makes_unique_error"
@@ -517,7 +519,7 @@ export default function BrandHub() {
                     </p>
                     <CharacterCounter
                       current={whatMakesUnique.length}
-                      max={100}
+                      max={250}
                     />
                   </div>
                   {errors.what_makes_unique && (
@@ -540,7 +542,7 @@ export default function BrandHub() {
                     Who's your target customer?{" "}
                     <span className="text-destructive">*</span>
                     {targetCustomer.length >= 10 &&
-                      targetCustomer.length <= 100 && (
+                      targetCustomer.length <= 250 && (
                         <ValidationIndicator isValid={true} />
                       )}
                   </Label>
@@ -548,8 +550,8 @@ export default function BrandHub() {
                     id="target_customer"
                     placeholder="e.g., Women 25-40 who love self-care rituals and creating cozy home spaces"
                     {...register("target_customer")}
-                    maxLength={100}
-                    rows={2}
+                    maxLength={250}
+                    rows={3}
                     aria-required="true"
                     aria-invalid={!!errors.target_customer}
                     aria-describedby="target_customer_helper target_customer_counter target_customer_error"
@@ -564,7 +566,7 @@ export default function BrandHub() {
                     </p>
                     <CharacterCounter
                       current={targetCustomer.length}
-                      max={100}
+                      max={250}
                     />
                   </div>
                   {errors.target_customer && (
