@@ -154,7 +154,10 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground">
                     Tell us about your business, what you sell, and who you serve
                   </p>
-                  <Button className="mt-3 bg-gradient-primary hover:opacity-90">
+                  <Button
+                    className="mt-3 bg-gradient-primary hover:opacity-90"
+                    onClick={() => navigate('/brand-hub')}
+                  >
                     Set Up Brand Hub
                   </Button>
                 </div>

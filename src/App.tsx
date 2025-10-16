@@ -9,6 +9,7 @@ import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import BrandHub from "./pages/BrandHub";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/faq" element={<FAQ />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/brand-hub" element={<BrandHub />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
