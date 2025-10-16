@@ -77,14 +77,17 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      toast.success('Signed in successfully!');
+      if (data.session) {
+        toast.success('Signed in successfully!');
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Error signing in');
     } finally {
