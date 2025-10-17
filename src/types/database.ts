@@ -51,10 +51,18 @@ export interface Post {
   post_type: 'image' | 'carousel' | 'reel' | 'story';
   platforms: string[];
   visual_concept: any;
-  hook?: string;
-  caption: string;
+  hook?: string | null;
+  caption: string | null;
   status: 'draft' | 'approved';
   deleted: boolean;
+  // Content strategy fields
+  purpose?: string | null;
+  core_message?: string | null;
+  behavioral_trigger?: string | null;
+  format?: string | null;
+  strategy_type?: string | null;
+  tracking_focus?: string | null;
+  cta?: string | null;
   created_at: string;
   updated_at: string;
 }
