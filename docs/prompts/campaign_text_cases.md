@@ -1,10 +1,14 @@
+
+
+
+
 test_campaigns = [
     {
         "campaign_name": "Holiday Gift Card Push",
         "what_promoting": (
             "Stack Creamery’s annual holiday gift card promotion: "
             "customers who buy a $50 gift card receive an extra $5 bonus card for themselves. "
-            "This campaign highlights gift cards as the perfect last-minute, no-stress holiday gift "
+            "This campaign cle holiday gift "
             "that can be used for any of Stack’s products—from ice cream sandwiches to catering orders."
         ),
         "goal": (
@@ -17,7 +21,8 @@ test_campaigns = [
         "important_date": "2025-12-25",
         "important_date_label": "Christmas",
         "sales_channel_type": "Both",
-        "post_limit": 20
+        "post_limit": 20,
+        "offers_or_promotions": "buy $50 worth of gift cards get an additional $5 in gift cards"
     },
 
     {
@@ -37,7 +42,8 @@ test_campaigns = [
         "important_date": "2025-11-01",
         "important_date_label": "Flavor Launch Day",
         "sales_channel_type": "In-person",
-        "post_limit": 15
+        "post_limit": 15.
+        "offers_or_promotions": null
     },
 
     {
