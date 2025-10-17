@@ -20,6 +20,7 @@ The following variables are injected into the prompt from the database:
 - `{end_date}` - Campaign end date
 - `{important_date}` - Key date (launch, sale, event) with label
 - `{sales_channel_type}` - Online, In-person, Both
+- `{offer_promotion}` - An offer that can be used to drive conversion, use strategically in posts
 
 ### User Subscription Data
 - `{post_limit}` - Number of posts to generate (10, 50, or unlimited)
@@ -27,101 +28,74 @@ The following variables are injected into the prompt from the database:
 ## Full Prompt Template
 
 ```
-Generate a complete content plan for {business_name}.
+## Role & Objective
+You are a senior social-media strategist and behavioral-marketing expert.  
+Your task: design a structured **content plan** that aligns with the business objective and real-world constraints.  
+Do **not** write captions or visuals — output only a concise, well-structured JSON array of post blueprints.
 
-BRAND CONTEXT:
-- Business: {business_name}
-- What they sell: {what_you_sell}
-- Brand vibe: {brand_vibe_words}
-- Target customer: {target_customer}
-- What makes them unique: {what_makes_unique}
+## Platform Scope Rule
+Only generate posts for the platforms explicitly listed in `{platforms}`.  
+Exclude any unlisted platform (e.g., no Google Business posts if not included).
 
-CAMPAIGN DETAILS:
-- Campaign name: {campaign_name}
-- What we're promoting: {what_promoting}
-- Goal: {goal}
-- Platforms: {platforms}
-- Timeline: {start_date} to {end_date}
-- Important date: {important_date} ({important_date_label})
-- Sales channel: {sales_channel_type}
+---
 
-TASK:
-Create {post_limit} social media posts that:
-1. Build anticipation leading up to {important_date}
-2. Mix promotional content (40%) with educational (30%) and engagement (30%) posts
-3. Maintain the brand voice ({brand_vibe_words})
-4. Drive the campaign goal: {goal}
-5. Are optimized for each platform in {platforms}
+## Internal Platform Logic (Compact)
+Instagram → Reels = reach; Carousel = educate; Static = brand moment; Stories = real-time  
+TikTok → Short = trends; Long = tutorials; casual tone  
+Facebook → Reels = community; Static = announcements; Stories = behind-the-scenes  
+Google Business → Updates = news; Offers = deals; Events = attendance; Products = showcase
 
-POST DISTRIBUTION STRATEGY:
-- Week 1-2: Awareness & education (tease what's coming)
-- Week 3: Build excitement & anticipation
-- Week 4: Launch & conversion focus
-- After launch: Testimonials, results, last chance messaging
+---
 
-For each post, provide:
-1. **post_name**: Descriptive title (e.g., "Pre-launch Teaser", "Behind the Scenes Day 3")
-2. **post_type**: educational, promotional, engagement, testimonial, or behind-the-scenes
-3. **platforms**: Which platforms this post is optimized for
-4. **scheduled_date**: Specific date within the campaign timeline
-5. **hook**: 1-2 sentence attention-grabbing opening (varies by platform)
-6. **caption**: Full post copy optimized for each platform
-7. **visual_concept**: Detailed description of the visual (photo/video concept, props, setting, angles)
+## Output Fields
+| Field | Description |
+|-------|--------------|
+| `post_name` | Short descriptive title |
+| `post_type` | educational / promotional / engagement / testimonial / behind-the-scenes |
+| `platforms` | subset of {platforms} |
+| `scheduled_date` | evenly distributed between {start_date}–{end_date} |
+| `purpose` | one-sentence objective |
+| `core_message` | main takeaway |
+| `behavioral_trigger` | one only (reciprocity / FOMO / scarcity / trust / nostalgia / belonging / curiosity / urgency) |
+| `format` | reel / carousel / photo / story / video / update / offer / event / product |
+| `tracking_focus` | primary KPI (views / saves / shares / comments / clicks / DMs / redemptions / attendance) |
+| `cta` | action (View Website / DM for Inquiries / Visit In-Store / Sign Up / Learn More / Share / Save) |
 
-PLATFORM-SPECIFIC REQUIREMENTS:
-- Instagram: Hooks should be visual-first, captions 150-200 words, 3-5 hashtags
-- Facebook: Longer storytelling captions (200-300 words), question-based hooks
-- TikTok: Video-first concepts, trend-aware, casual tone, 1-2 sentence captions
+---
 
-IMPORTANT:
-- Ensure posts flow logically from awareness → consideration → conversion
-- Reference the {important_date} strategically throughout the campaign
-- Every post should tie back to {what_makes_unique}
-- Use {brand_vibe_words} to guide tone and style
-- Make visual concepts achievable for small business owners (smartphone-friendly)
+## Strategy Rules
+1. Funnel mix → Awareness 30 % | Consideration 30 % | Conversion 30 % | Retention 10 %.  
+2. Content mix → Promotional 40 % | Educational 30 % | Engagement 30 %.  
+3. Align metrics + CTAs with funnel stage:  
+   • Awareness → views / reach / saves  
+   • Consideration → shares / clicks / saves  
+   • Conversion → clicks / DMs / sign-ups  
+   • Retention → comments / UGC / redemptions  
+4. Reflect `{brand_vibe_words}`, `{target_customer}`, and `{what_makes_unique}`.  
+5. Keep text ≤ 25 words per field.  
+6. Return **only valid JSON** — no markdown, no code fences.  
+7. **If `{offers_or_promotions}` is blank**, do not invent or imply any sales, discounts, or limited-time deals.  
+8. **Exclude “social proof”** triggers or testimonial-style content unless explicitly supported by provided context.  
+9. Ensure post ideas remain achievable and practical for small business owners with limited production capacity.  
 
-Return the posts as a JSON array with the structure defined in the tool schema.
-```
+---
 
-## User Refinement Prompt
-
-When a user provides feedback to regenerate the entire content plan:
-
-```
-The user has requested changes to the content plan:
-"{user_feedback}"
-
-Using the original brand context and campaign details, regenerate the {post_limit} posts with these modifications. Maintain the same strategic distribution (educational, promotional, engagement mix) but adjust according to the user's feedback.
-
-Keep the same JSON structure and ensure all posts remain cohesive as a campaign strategy.
-```
-
-## Example Output Structure
-
+## Output Schema
 ```json
 {
   "posts": [
     {
-      "post_name": "Pre-launch Teaser #1",
-      "post_type": "engagement",
-      "platforms": ["Instagram", "Facebook"],
-      "scheduled_date": "2025-01-15",
-      "hook": "Want to know the secret to [benefit]? 👀 Hint: It's coming January 30th...",
-      "caption": "Full caption here with storytelling, value prop, and CTA...",
-      "visual_concept": {
-        "type": "photo",
-        "description": "Close-up shot of [product detail] with soft natural lighting. Use shallow depth of field to create mystery. Props: [specific props]. Setting: [specific location]. Angle: Eye-level, slightly off-center.",
-        "style_notes": "Keep it minimalist and clean to match brand vibe"
-      }
+      "post_name": "Rewards Reveal Teaser",
+      "post_type": "promotional",
+      "platforms": ["Instagram","TikTok"],
+      "scheduled_date": "2025-11-05",
+      "purpose": "Create excitement about joining the loyalty program.",
+      "core_message": "Earn free scoops by signing up today.",
+      "behavioral_trigger": "FOMO",
+      "format": "reel",
+      "tracking_focus": "views",
+      "cta": "Sign Up for Rewards"
     }
   ]
 }
 ```
-
-## Post Type Definitions
-
-- **Educational**: Teaches target audience something valuable, positions brand as expert
-- **Promotional**: Directly sells product/service, includes offer or CTA to purchase
-- **Engagement**: Asks questions, encourages comments, builds community
-- **Testimonial**: Features customer results, social proof, case studies
-- **Behind-the-scenes**: Shows process, humanizes brand, builds connection

@@ -73,28 +73,28 @@ serve(async (req) => {
     console.log(`[generate-content-plan] User tier: ${user.subscription_tier}, generating ${postLimit} posts`);
 
     // Build the AI prompt
-    const systemPrompt = `You are a content marketing strategist and copywriter for small business owners. Your role is to create engaging, authentic social media content that drives results while maintaining the brand's unique voice.
+    const systemPrompt = `You are a senior social-media strategist and behavioral-marketing expert.
+Your task: design a structured **content plan** that aligns with the business objective and real-world constraints.
+Do **not** write captions or visuals — output only a concise, well-structured JSON array of post blueprints.
 
 Key Principles:
-- Write in the brand's voice using their specified vibe words
-- Target the specific customer persona provided
-- Focus on the unique value proposition that sets this business apart
-- Balance promotional content with educational and engagement posts
-- Use platform-specific best practices (character limits, hashtag strategies, etc.)
-- Create actionable, scroll-stopping hooks that capture attention
-- Write captions that tell stories and create emotional connections
-- Include clear calls-to-action that drive business goals
+- Design strategic post architecture that guides the customer journey
+- Apply behavioral psychology triggers appropriately for each funnel stage
+- Align content formats with platform algorithms and best practices
+- Create cohesive campaigns with intentional pacing and distribution
+- Ensure every post has measurable objectives and clear tracking focus
+- Balance promotional, educational, and engagement content strategically
+- Reflect the brand's unique voice, audience, and value proposition
 
-Content Quality Standards:
-- Every post must have a clear purpose aligned with the campaign goal
-- Hooks must be attention-grabbing and platform-appropriate
-- Captions should be conversational, not salesy
-- Visual concepts should be specific, actionable, and achievable with basic equipment
-- Posts should work together as a cohesive content strategy, not random individual pieces
+Strategy Framework:
+- Use proven behavioral triggers: reciprocity, FOMO, scarcity, trust, nostalgia, belonging, curiosity, urgency
+- Match tracking metrics to funnel stage (awareness=views/reach, consideration=shares/saves, conversion=clicks/DMs)
+- Distribute content across the timeline strategically, ramping up near important dates
+- Keep all descriptions concise (≤25 words per field) and actionable
 
-Remember: You're helping a busy business owner who needs content that actually works, not just looks pretty. Prioritize conversion and engagement over perfection.`;
+Remember: You're designing the strategic blueprint, not writing copy. Focus on what each post should accomplish and how it fits into the overall campaign arc.`;
 
-    const userPrompt = `Generate a complete content plan for ${brandHub.business_name}.
+    const userPrompt = `Generate a strategic content plan for ${brandHub.business_name}.
 
 BRAND CONTEXT:
 - Business: ${brandHub.business_name}
@@ -105,51 +105,59 @@ BRAND CONTEXT:
 
 CAMPAIGN DETAILS:
 - Campaign name: ${contentPlan.name}
-- What we're promoting: ${contentPlan.what_promoting}
+- What promoting: ${contentPlan.what_promoting}
 - Goal: ${contentPlan.goal || 'Drive engagement and sales'}
 - Platforms: ${contentPlan.platforms.join(', ')}
 - Timeline: ${contentPlan.start_date} to ${contentPlan.end_date}
 ${contentPlan.important_date ? `- Important date: ${contentPlan.important_date} (${contentPlan.important_date_label})` : ''}
 - Sales channel: ${contentPlan.sales_channel_type}
+- Offers/Promotions: ${contentPlan.offers_promos || 'None'}
 
 ${userMessage ? `USER REFINEMENT REQUEST:\n"${userMessage}"\n` : ''}
 
+PLATFORM SCOPE RULE:
+Only generate posts for these platforms: ${contentPlan.platforms.join(', ')}
+Exclude any unlisted platform.
+
+PLATFORM FORMAT LOGIC:
+- Instagram: Reels=reach, Carousel=educate, Photo=brand moment, Stories=real-time
+- TikTok: Video (short=trends, long=tutorials, casual tone)
+- Facebook: Reels=community, Photo=announcements, Stories=behind-the-scenes
+- Google Business: Updates=news, Offers=deals, Events=attendance, Products=showcase
+
+STRATEGY RULES:
+1. Funnel mix → Awareness 30% | Consideration 30% | Conversion 30% | Retention 10%
+2. Content mix → Promotional 40% | Educational 30% | Engagement 30%
+3. Align metrics + CTAs with funnel stage:
+   • Awareness → views/reach/saves
+   • Consideration → shares/clicks/saves
+   • Conversion → clicks/DMs/sign-ups
+   • Retention → comments/UGC/redemptions
+4. Reflect brand vibe (${brandHub.brand_vibe_words.join(', ')}), target customer, and unique value
+5. Keep all text fields ≤25 words
+6. Distribute posts evenly across timeline, ramping up near ${contentPlan.important_date ? contentPlan.important_date_label : 'campaign goal'}
+
 TASK:
-Create ${postLimit} social media posts that:
-1. Build anticipation leading up to ${contentPlan.important_date || 'the campaign goal'}
-2. Mix promotional content (40%) with educational (30%) and engagement (30%) posts
-3. Maintain the brand voice (${brandHub.brand_vibe_words.join(', ')})
-4. Drive the campaign goal: ${contentPlan.goal || 'increase engagement and sales'}
-5. Are optimized for each platform in ${contentPlan.platforms.join(', ')}
+Create ${postLimit} post blueprints. For each post provide:
+- post_name: Short descriptive title
+- post_type: educational / promotional / engagement / testimonial / behind-the-scenes
+- platforms: Subset of [${contentPlan.platforms.join(', ')}]
+- scheduled_date: Evenly distributed between ${contentPlan.start_date} and ${contentPlan.end_date} (YYYY-MM-DD)
+- purpose: One-sentence objective for this post
+- core_message: Main takeaway or value proposition
+- behavioral_trigger: ONE only (reciprocity / FOMO / scarcity / trust / nostalgia / belonging / curiosity / urgency)
+- format: reel / carousel / photo / story / video / update / offer / event / product
+- tracking_focus: Primary KPI (views / saves / shares / comments / clicks / DMs / redemptions / attendance)
+- cta: Specific action (View Website / DM for Inquiries / Visit In-Store / Sign Up / Learn More / Share / Save)
 
-POST DISTRIBUTION STRATEGY:
-- Week 1-2: Awareness & education (tease what's coming)
-- Week 3: Build excitement & anticipation
-- Week 4: Launch & conversion focus
-- After launch: Testimonials, results, last chance messaging
+IMPORTANT CONSTRAINTS:
+- Return ONLY valid JSON, no markdown, no code fences
+- **CRITICAL**: If Offers/Promotions = "None", do NOT invent or imply any sales, discounts, limited-time deals, or promotional offers in any posts
+- If Offers/Promotions IS specified, use it strategically in conversion-focused posts (don't mention it in every post)
+- Ensure posts are achievable for small business owners with limited resources
+- Build strategic arc from awareness → consideration → conversion → retention
 
-For each post, provide:
-1. post_name: Descriptive title (e.g., "Pre-launch Teaser", "Behind the Scenes Day 3")
-2. post_type: educational, promotional, engagement, testimonial, or behind-the-scenes
-3. platforms: Which platforms this post is optimized for (array)
-4. scheduled_date: Specific date within the campaign timeline (YYYY-MM-DD format)
-5. hook: 1-2 sentence attention-grabbing opening (varies by platform)
-6. caption: Full post copy optimized for each platform (150-300 words)
-7. visual_concept: Object with {type: "photo" or "video", description: detailed shot description, props: array of props needed, setting: location, style_notes: lighting and mood}
-
-PLATFORM-SPECIFIC REQUIREMENTS:
-- Instagram: Hooks should be visual-first, captions 150-200 words, 3-5 hashtags
-- Facebook: Longer storytelling captions (200-300 words), question-based hooks
-- TikTok: Video-first concepts, trend-aware, casual tone, 1-2 sentence captions
-
-IMPORTANT:
-- Ensure posts flow logically from awareness → consideration → conversion
-- Reference the ${contentPlan.important_date ? `important date (${contentPlan.important_date})` : 'campaign goal'} strategically throughout the campaign
-- Every post should tie back to: ${brandHub.what_makes_unique}
-- Use ${brandHub.brand_vibe_words.join(', ')} to guide tone and style
-- Make visual concepts achievable for small business owners (smartphone-friendly)
-
-Return the posts using the tool.`;
+Return the post blueprints using the tool.`;
 
     // Call OpenAI with tool calling for structured output
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -169,7 +177,7 @@ Return the posts using the tool.`;
             type: 'function',
             function: {
               name: 'create_content_posts',
-              description: 'Generate social media posts for a content plan',
+              description: 'Generate strategic post blueprints for a content plan',
               parameters: {
                 type: 'object',
                 properties: {
@@ -178,25 +186,51 @@ Return the posts using the tool.`;
                     items: {
                       type: 'object',
                       properties: {
-                        post_name: { type: 'string' },
-                        post_type: { type: 'string', enum: ['educational', 'promotional', 'engagement', 'testimonial', 'behind-the-scenes'] },
-                        platforms: { type: 'array', items: { type: 'string' } },
-                        scheduled_date: { type: 'string', format: 'date' },
-                        hook: { type: 'string' },
-                        caption: { type: 'string' },
-                        visual_concept: {
-                          type: 'object',
-                          properties: {
-                            type: { type: 'string', enum: ['photo', 'video'] },
-                            description: { type: 'string' },
-                            props: { type: 'array', items: { type: 'string' } },
-                            setting: { type: 'string' },
-                            style_notes: { type: 'string' }
-                          },
-                          required: ['type', 'description']
+                        post_name: { type: 'string', description: 'Short descriptive title' },
+                        post_type: {
+                          type: 'string',
+                          enum: ['educational', 'promotional', 'engagement', 'testimonial', 'behind-the-scenes'],
+                          description: 'Content strategy type'
+                        },
+                        platforms: {
+                          type: 'array',
+                          items: { type: 'string' },
+                          description: 'Target platforms for this post'
+                        },
+                        scheduled_date: {
+                          type: 'string',
+                          format: 'date',
+                          description: 'Date to publish (YYYY-MM-DD)'
+                        },
+                        purpose: {
+                          type: 'string',
+                          description: 'One-sentence objective for this post (≤25 words)'
+                        },
+                        core_message: {
+                          type: 'string',
+                          description: 'Main takeaway or value proposition (≤25 words)'
+                        },
+                        behavioral_trigger: {
+                          type: 'string',
+                          enum: ['reciprocity', 'FOMO', 'scarcity', 'trust', 'nostalgia', 'belonging', 'curiosity', 'urgency'],
+                          description: 'Primary psychological trigger'
+                        },
+                        format: {
+                          type: 'string',
+                          enum: ['reel', 'carousel', 'photo', 'story', 'video', 'update', 'offer', 'event', 'product'],
+                          description: 'Content format type'
+                        },
+                        tracking_focus: {
+                          type: 'string',
+                          enum: ['views', 'saves', 'shares', 'comments', 'clicks', 'DMs', 'redemptions', 'attendance'],
+                          description: 'Primary KPI to track'
+                        },
+                        cta: {
+                          type: 'string',
+                          description: 'Specific call-to-action'
                         }
                       },
-                      required: ['post_name', 'post_type', 'platforms', 'scheduled_date', 'caption', 'visual_concept']
+                      required: ['post_name', 'post_type', 'platforms', 'scheduled_date', 'purpose', 'core_message', 'behavioral_trigger', 'format', 'tracking_focus', 'cta']
                     }
                   }
                 },
@@ -228,18 +262,44 @@ Return the posts using the tool.`;
     const generatedPosts = JSON.parse(toolCall.function.arguments).posts;
     console.log(`[generate-content-plan] Generated ${generatedPosts.length} posts`);
 
+    // Map blueprint format to database post_type (content format)
+    const formatToPostType = (format: string): string => {
+      const mapping: Record<string, string> = {
+        'photo': 'image',
+        'image': 'image',
+        'carousel': 'carousel',
+        'reel': 'reel',
+        'video': 'reel',  // Default videos to reels
+        'story': 'story',
+        'update': 'image',  // Google Business updates as images
+        'offer': 'carousel',  // Offers work well as carousels
+        'event': 'image',
+        'product': 'image'
+      };
+      return mapping[format] || 'image';
+    };
+
     // Insert posts into database
     const postsToInsert = generatedPosts.map((post: any, index: number) => ({
       content_plan_id: contentPlanId,
       user_id: contentPlan.user_id,
       post_number: index + 1,
       post_name: post.post_name,
-      post_type: post.post_type,
+      post_type: formatToPostType(post.format),  // Map format to post_type (image/carousel/reel/story)
       platforms: post.platforms,
       scheduled_date: post.scheduled_date,
-      hook: post.hook || null,
-      caption: post.caption,
-      visual_concept: post.visual_concept,
+      // Strategy fields (from content plan agent)
+      strategy_type: post.post_type,  // Strategy type (educational/promotional/etc)
+      purpose: post.purpose,
+      core_message: post.core_message,
+      behavioral_trigger: post.behavioral_trigger,
+      format: post.format,  // Original format from blueprint
+      tracking_focus: post.tracking_focus,
+      cta: post.cta,
+      // Content fields (to be filled by copywriting/shot list agents)
+      hook: null,
+      caption: null,
+      visual_concept: null,
       status: 'draft',
     }));
 
