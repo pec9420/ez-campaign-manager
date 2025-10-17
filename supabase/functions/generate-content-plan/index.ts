@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,6 +19,10 @@ serve(async (req) => {
 
     if (!brandHubId || !contentPlanId) {
       throw new Error('Missing required parameters: brandHubId and contentPlanId');
+    }
+
+    if (!anthropicApiKey) {
+      throw new Error('ANTHROPIC_API_KEY is not configured');
     }
 
     console.log(`[generate-content-plan] Starting generation for contentPlanId: ${contentPlanId}`);
@@ -75,7 +79,13 @@ serve(async (req) => {
     // Build the AI prompt
     const systemPrompt = `You are a senior social-media strategist and behavioral-marketing expert.
 Your task: design a structured **content plan** that aligns with the business objective and real-world constraints.
-Do **not** write captions or visuals — output only a concise, well-structured JSON array of post blueprints.
+
+**CRITICAL**: Do **NOT** write:
+- Hooks or opening lines
+- Captions or post copy
+- Visual concepts or shot descriptions
+
+Output **ONLY** strategic post blueprints with tactical metadata (purpose, triggers, formats, CTAs, tracking).
 
 Key Principles:
 - Design strategic post architecture that guides the customer journey
@@ -159,107 +169,105 @@ IMPORTANT CONSTRAINTS:
 
 Return the post blueprints using the tool.`;
 
-    // Call OpenAI with tool calling for structured output
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Claude with tool calling for structured output
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
+        'x-api-key': anthropicApiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
+        model: 'claude-sonnet-4-5',
+        max_tokens: 16000,
+        temperature: 0.5,
+        system: systemPrompt,
         tools: [
           {
-            type: 'function',
-            function: {
-              name: 'create_content_posts',
-              description: 'Generate strategic post blueprints for a content plan',
-              parameters: {
-                type: 'object',
-                properties: {
-                  posts: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        post_name: { type: 'string', description: 'Short descriptive title' },
-                        post_type: {
-                          type: 'string',
-                          enum: ['educational', 'promotional', 'engagement', 'testimonial', 'behind-the-scenes'],
-                          description: 'Content strategy type'
-                        },
-                        platforms: {
-                          type: 'array',
-                          items: { type: 'string' },
-                          description: 'Target platforms for this post'
-                        },
-                        scheduled_date: {
-                          type: 'string',
-                          format: 'date',
-                          description: 'Date to publish (YYYY-MM-DD)'
-                        },
-                        purpose: {
-                          type: 'string',
-                          description: 'One-sentence objective for this post (≤25 words)'
-                        },
-                        core_message: {
-                          type: 'string',
-                          description: 'Main takeaway or value proposition (≤25 words)'
-                        },
-                        behavioral_trigger: {
-                          type: 'string',
-                          enum: ['reciprocity', 'FOMO', 'scarcity', 'trust', 'nostalgia', 'belonging', 'curiosity', 'urgency'],
-                          description: 'Primary psychological trigger'
-                        },
-                        format: {
-                          type: 'string',
-                          enum: ['reel', 'carousel', 'photo', 'story', 'video', 'update', 'offer', 'event', 'product'],
-                          description: 'Content format type'
-                        },
-                        tracking_focus: {
-                          type: 'string',
-                          enum: ['views', 'saves', 'shares', 'comments', 'clicks', 'DMs', 'redemptions', 'attendance'],
-                          description: 'Primary KPI to track'
-                        },
-                        cta: {
-                          type: 'string',
-                          description: 'Specific call-to-action'
-                        }
+            name: 'create_content_posts',
+            description: 'Generate strategic post blueprints for a content plan',
+            input_schema: {
+              type: 'object',
+              properties: {
+                posts: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      post_name: { type: 'string', description: 'Short descriptive title' },
+                      post_type: {
+                        type: 'string',
+                        enum: ['educational', 'promotional', 'engagement', 'testimonial', 'behind-the-scenes'],
+                        description: 'Content strategy type'
                       },
-                      required: ['post_name', 'post_type', 'platforms', 'scheduled_date', 'purpose', 'core_message', 'behavioral_trigger', 'format', 'tracking_focus', 'cta']
-                    }
+                      platforms: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        description: 'Target platforms for this post'
+                      },
+                      scheduled_date: {
+                        type: 'string',
+                        description: 'Date to publish (YYYY-MM-DD format)'
+                      },
+                      purpose: {
+                        type: 'string',
+                        description: 'One-sentence objective for this post (≤25 words)'
+                      },
+                      core_message: {
+                        type: 'string',
+                        description: 'Main takeaway or value proposition (≤25 words)'
+                      },
+                      behavioral_trigger: {
+                        type: 'string',
+                        enum: ['reciprocity', 'FOMO', 'scarcity', 'trust', 'nostalgia', 'belonging', 'curiosity', 'urgency'],
+                        description: 'Primary psychological trigger'
+                      },
+                      format: {
+                        type: 'string',
+                        enum: ['reel', 'carousel', 'photo', 'story', 'video', 'update', 'offer', 'event', 'product'],
+                        description: 'Content format type'
+                      },
+                      tracking_focus: {
+                        type: 'string',
+                        enum: ['views', 'saves', 'shares', 'comments', 'clicks', 'DMs', 'redemptions', 'attendance'],
+                        description: 'Primary KPI to track'
+                      },
+                      cta: {
+                        type: 'string',
+                        description: 'Specific call-to-action'
+                      }
+                    },
+                    required: ['post_name', 'post_type', 'platforms', 'scheduled_date', 'purpose', 'core_message', 'behavioral_trigger', 'format', 'tracking_focus', 'cta']
                   }
-                },
-                required: ['posts']
-              }
+                }
+              },
+              required: ['posts']
             }
           }
         ],
-        tool_choice: { type: 'function', function: { name: 'create_content_posts' } },
-        max_completion_tokens: 16000,
+        tool_choice: { type: 'tool', name: 'create_content_posts' },
+        messages: [
+          { role: 'user', content: userPrompt }
+        ],
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Claude API error:', response.status, errorText);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('[generate-content-plan] OpenAI response received');
+    console.log('[generate-content-plan] Claude response received');
 
-    // Extract posts from tool call
-    const toolCall = data.choices[0]?.message?.tool_calls?.[0];
-    if (!toolCall || toolCall.function.name !== 'create_content_posts') {
-      throw new Error('No valid tool call in OpenAI response');
+    // Extract posts from Claude tool use
+    const toolUseBlock = data.content?.find((block: any) => block.type === 'tool_use');
+    if (!toolUseBlock || toolUseBlock.name !== 'create_content_posts') {
+      throw new Error('No valid tool use in Claude response');
     }
 
-    const generatedPosts = JSON.parse(toolCall.function.arguments).posts;
+    const generatedPosts = toolUseBlock.input.posts;
     console.log(`[generate-content-plan] Generated ${generatedPosts.length} posts`);
 
     // Map blueprint format to database post_type (content format)
