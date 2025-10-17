@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -88,9 +89,39 @@ export default function PostDetailModal({
   const isLast = currentIndex === allPosts.length - 1;
   const position = `${currentIndex + 1} of ${allPosts.length}`;
 
+  const goToPrevPost = () => {
+    if (!isFirst) {
+      onNavigate("prev");
+    }
+  };
+
+  const goToNextPost = () => {
+    if (!isLast) {
+      onNavigate("next");
+    }
+  };
+
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        goToPrevPost();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        goToNextPost();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isFirst, isLast, onNavigate]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto relative">
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -346,31 +377,32 @@ export default function PostDetailModal({
           </div>
         </div>
 
-        {/* Navigation Footer */}
-        <div className="flex items-center justify-between pt-6 border-t mt-6">
-          <Button
-            variant="outline"
-            onClick={() => onNavigate("prev")}
-            disabled={isFirst}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous Post
-          </Button>
+        {/* Navigation Buttons - Vertically Centered on Edges */}
+        <Button
+          variant="outline"
+          onClick={goToPrevPost}
+          disabled={isFirst}
+          aria-label="Previous post"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 bg-white dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Previous</span>
+        </Button>
 
-          <div className="text-sm text-muted-foreground">
-            Post {position}
-          </div>
+        <Button
+          variant="outline"
+          onClick={goToNextPost}
+          disabled={isLast}
+          aria-label="Next post"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 bg-white dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="w-4 h-4" />
+        </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => onNavigate("next")}
-            disabled={isLast}
-            className="flex items-center gap-2"
-          >
-            Next Post
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+        {/* Post Position Indicator */}
+        <div className="text-sm text-muted-foreground text-center pt-6 border-t mt-6">
+          Post {position}
         </div>
       </DialogContent>
     </Dialog>

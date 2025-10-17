@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - `users` table with subscription management and usage tracking
    - `brand_hub` table (one-to-one with users)
    - `content_plans` table (campaigns with shot list JSONB)
-   - `posts` table (individual social posts with soft delete)
+   - `posts` table (individual social posts with soft delete + content strategy fields)
    - `feedback` table for user feedback collection
    - Row-Level Security (RLS) policies enabled
    - Auto-updating timestamps via triggers
@@ -37,8 +37,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - `generate-shot-list`: Claude Sonnet 4.5 creates comprehensive shot list from posts
    - `check-usage-limits`: Validates tier limits before actions
 
-4. **Landing Page & Auth Pages**
-   - Marketing landing page with hero, features, and CTA
+4. **Marketing Pages**
+   - Landing page with hero, features, and CTA
+   - Features page with detailed product benefits
+   - Pricing page with tier comparison
+   - FAQ page with common questions
    - Sign up / Sign in pages with email/password authentication
    - 404 error page
 
@@ -48,35 +51,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - Dark mode support
    - Responsive layouts
 
-### ⚠️ PARTIALLY IMPLEMENTED
+### ✅ FULLY IMPLEMENTED (Frontend - Core Features)
 
-1. **Dashboard Page**
-   - Basic layout with header and sign-out button
+1. **Brand Hub Page** (`/brand-hub`)
+   - Complete form to create/edit brand profile
+   - Fields: business name, what you sell, unique value prop, target customer, brand vibe words
+   - Character limit validation (100 chars most fields)
+   - Array validation (3-5 vibe words required)
+   - Supabase integration with RLS
+   - Loading states and error handling
+
+2. **Campaign Creation Page** (`/create-campaign`)
+   - Full form with validation (React Hook Form + Zod)
+   - Fields: name, what promoting, goal, date range, important date, platforms, sales channel
+   - Platform multi-select (1-3 platforms, Instagram/TikTok/Facebook/Google Business)
+   - Sales channel dropdown (website, Etsy, Amazon, Shopify, etc.)
+   - Date range validation (2-90 days)
+   - AI generation trigger calling `generate-content-plan` Edge Function
+   - Loading state during 30-45 second AI generation
+   - Success/error toast notifications
+   - Navigation to Content Manager on completion
+
+3. **Content Manager Page** (`/content-manager`)
+   - **Campaign List View**: Grid of campaign cards with stats
+   - **Campaign Detail View**: Full campaign metadata with tabbed interface
+   - **Post List View**: Enhanced table showing all posts with core_message, tracking_focus, CTA
+   - **Post Calendar View**: Month grid with posts on scheduled dates
+   - **Post Detail Modal**: Complete post information with prev/next navigation
+   - Real-time data fetching from Supabase
+   - Empty state handling
+   - Responsive design (grid → stack on mobile)
+
+4. **Campaign Components**
+   - `CampaignCard`: Summary card with progress bar, platforms, post counts
+   - `CampaignDetailView`: Metadata display with list/calendar tabs
+   - `PostListView`: Table with 8 columns (post #, name, core message, metrics, CTA, type, date, status)
+   - `PostCalendarView`: Month grid with color-coded posts, important date highlighting
+   - `PostDetailModal`: Organized sections (metadata, strategy, content, metrics) with navigation
+
+5. **Dashboard Page**
+   - Layout with sidebar navigation
    - Placeholder stats (hardcoded to "0")
    - "Getting Started" UI with setup steps
-   - **Missing**: No actual data fetching, no navigation to other pages
+   - Links to Brand Hub and Campaign Creation
+
+6. **Settings Page**
+   - Basic settings page structure
+   - Placeholder for future subscription management
 
 ### ❌ NOT YET IMPLEMENTED (Frontend)
 
-The following features are documented but have NO UI implementation:
+1. **Shot List View** - No display of generated shot list, checkboxes, or export
+2. **Post Editing** - Modal shows post details but no edit/save functionality yet
+3. **AI Regeneration UI** - No "Regenerate with AI" button in post detail modal
+4. **Post Approval Toggle** - No UI to change post status from draft to approved
+5. **Campaign Deletion** - No delete campaign functionality with confirmation
+6. **Feedback Widget** - No floating feedback button or modal
+7. **Stripe Integration** - No checkout, webhooks, or customer portal
+8. **Usage Limit Enforcement UI** - No modals when limits are reached
+9. **Email Verification** - No enforcement or UI prompts
 
-1. **Brand Hub Setup Page** - No form to create/edit brand profile
-2. **Campaign Creation Workflow** - No UI to create campaigns or trigger AI generation
-3. **Calendar View** - No month grid or post visualization
-4. **Post Detail View** - No post editing, regeneration, or approval interface
-5. **Shot List View** - No display of generated shot list, checkboxes, or export
-6. **Campaign List Page** - No list of user's campaigns
-7. **Feedback Widget** - No floating feedback button or modal
-8. **Settings/Account Page** - No subscription management UI
-9. **Stripe Integration** - No checkout, webhooks, or customer portal
-
-## User Journey Flow (Planned)
+## User Journey Flow
 
 1. **Sign Up & Pay** → Stripe Checkout ($15 Starter or $29 Growth/month) ❌ Not implemented
-2. **Brand Hub Setup** → One-time brand voice profile ❌ No UI
-3. **Create Campaign** → Describe promotion, dates, platforms ❌ No UI
-4. **AI Generates Content** → 10-50 posts with captions + shot list ✅ Backend ready, no UI
-5. **Review & Edit Posts** → Calendar view to review and customize ❌ No UI
+2. **Brand Hub Setup** → One-time brand voice profile ✅ UI complete
+3. **Create Campaign** → Describe promotion, dates, platforms ✅ UI complete
+4. **AI Generates Content** → 10-50 posts with captions + shot list ✅ Fully functional (30-45 sec generation)
+5. **Review & Edit Posts** → Calendar and list views to review posts ✅ UI complete (view-only, editing pending)
 6. **Export Shot List** → Download actionable shooting checklist ❌ No UI
 7. **Batch Shoot Content** → One afternoon shooting session covers entire month
 
@@ -121,34 +162,51 @@ npm run preview
 
 ```
 src/
-├── components/ui/        # shadcn/ui components (DO NOT manually edit)
-├── hooks/               # Custom React hooks
-│   ├── useAuth.ts      # Authentication state management
-│   ├── use-toast.ts    # Toast notifications
-│   └── use-mobile.tsx  # Mobile device detection
+├── components/
+│   ├── ui/                      # shadcn/ui components (DO NOT manually edit)
+│   ├── AppLayout.tsx            # Sidebar layout wrapper for authenticated routes
+│   ├── Navigation.tsx           # Navigation sidebar component
+│   ├── CampaignCard.tsx         # Campaign summary card with stats
+│   ├── CampaignDetailView.tsx   # Campaign detail page with tabs
+│   ├── PostListView.tsx         # Post table with enhanced columns
+│   ├── PostCalendarView.tsx     # Calendar grid view for posts
+│   └── PostDetailModal.tsx      # Post detail modal with navigation
+├── hooks/                       # Custom React hooks
+│   ├── useAuth.ts              # Authentication state management
+│   ├── use-toast.ts            # Toast notifications
+│   └── use-mobile.tsx          # Mobile device detection
 ├── integrations/
-│   └── supabase/       # Supabase client and types
-│       ├── client.ts   # Auto-generated Supabase client
-│       └── types.ts    # Auto-generated database types
+│   └── supabase/               # Supabase client and types
+│       ├── client.ts           # Auto-generated Supabase client
+│       └── types.ts            # Auto-generated database types
 ├── lib/
-│   └── utils.ts        # Utility functions (cn, etc.)
-├── pages/              # Route components
-│   ├── Index.tsx       # Landing page (complete)
-│   ├── Auth.tsx        # Authentication page (complete)
-│   ├── Dashboard.tsx   # Main dashboard (skeleton only)
-│   └── NotFound.tsx    # 404 page (complete)
-├── types/              # TypeScript type definitions
-├── App.tsx             # Root app component with routing
-└── main.tsx            # Application entry point
+│   └── utils.ts                # Utility functions (cn, etc.)
+├── pages/                      # Route components
+│   ├── Index.tsx               # Landing page (complete)
+│   ├── Features.tsx            # Features marketing page
+│   ├── Pricing.tsx             # Pricing page
+│   ├── FAQ.tsx                 # FAQ page
+│   ├── Auth.tsx                # Authentication page (complete)
+│   ├── Dashboard.tsx           # Main dashboard with sidebar
+│   ├── BrandHub.tsx            # Brand hub setup (FULLY IMPLEMENTED)
+│   ├── ContentManager.tsx      # Campaign & post manager (FULLY IMPLEMENTED)
+│   ├── CreateCampaign.tsx      # Campaign creation (FULLY IMPLEMENTED)
+│   ├── Settings.tsx            # Settings page (basic structure)
+│   └── NotFound.tsx            # 404 page (complete)
+├── types/                      # TypeScript type definitions
+│   └── database.ts             # Database type interfaces
+├── App.tsx                     # Root app component with routing
+└── main.tsx                    # Application entry point
 
 supabase/
-├── migrations/         # Database schema
-│   └── 20251015143508_[...].sql  # Complete schema + seed data
-└── functions/          # Deno Edge Functions
-    ├── generate-content-plan/    # OpenAI GPT-5 content generation
-    ├── regenerate-post/          # OpenAI post regeneration
-    ├── generate-shot-list/       # Claude Sonnet 4.5 shot list
-    └── check-usage-limits/       # Usage tracking & validation
+├── migrations/                 # Database schema
+│   ├── 20251015143508_[...].sql          # Complete schema + seed data
+│   └── 20251017030524_[...].sql          # Content strategy fields
+└── functions/                  # Deno Edge Functions
+    ├── generate-content-plan/  # OpenAI GPT-5 content generation
+    ├── regenerate-post/        # OpenAI post regeneration
+    ├── generate-shot-list/     # Claude Sonnet 4.5 shot list
+    └── check-usage-limits/     # Usage tracking & validation
 ```
 
 ## Database Schema & Business Logic
@@ -204,6 +262,14 @@ supabase/
   - `caption`: 10-500 chars
   - `status`: "draft" or "approved"
   - `deleted`: Soft delete flag (boolean, default false)
+- **Content Strategy Fields** (added for content planning):
+  - `purpose`: Post objective/purpose (e.g., "awareness", "conversion")
+  - `core_message`: Main takeaway or value proposition (≤150 chars)
+  - `behavioral_trigger`: Psychological trigger or motivation
+  - `format`: Content format/style guidance
+  - `strategy_type`: Content strategy category (educational, promotional, engagement, testimonial, behind-the-scenes)
+  - `tracking_focus`: Primary KPI to track (views, saves, shares, comments, clicks, DMs, redemptions, attendance)
+  - `cta`: Call-to-action text (≤100 chars)
 - **Soft delete**: Sets `deleted = true` instead of hard delete, decrements user's posts counter
 - **Hook requirement**: post_type IN ('reel', 'story') requires non-null hook
 
@@ -245,13 +311,162 @@ Currently undefined:
 - Monthly post limits (posts_created_this_period counter exists but no enforcement in UI)
 - AI regeneration limits (ai_regenerations_used_this_period counter exists but no enforcement)
 
+## Campaign & Post Management UI
+
+### Content Manager Page (`/content-manager`)
+
+The Content Manager serves as the central hub for viewing and managing campaigns and posts.
+
+**Three-Level View Hierarchy**:
+1. **Campaign List** → Grid of campaign cards
+2. **Campaign Detail** → Campaign metadata with tabbed post views
+3. **Post Detail Modal** → Individual post with full information
+
+**State Management**:
+- Fetches all campaigns for logged-in user
+- Aggregates post counts and approval stats per campaign
+- Loads posts on-demand when campaign is selected
+- Modal state for post viewing with prev/next navigation
+
+### CampaignCard Component
+
+Displays campaign summary with key metrics:
+- Campaign name and date range
+- Platform badges (Instagram, TikTok, Facebook, Google Business)
+- Sales channel badge
+- Important date with rocket icon and label
+- Post statistics: "X/Y Approved" with percentage
+- Progress bar showing approval ratio
+- Hover effects and click interaction
+
+**Color Coding**:
+- Progress bar fills green based on approval percentage
+- Platforms shown as secondary badges
+- Sales channel as outline badge
+
+### Campaign Detail View
+
+**Layout**: Two-column metadata display + tabbed content section
+
+**Campaign Metadata Card** shows:
+- Campaign period with calendar icon
+- What's being promoted
+- Campaign goal (optional)
+- Important date with rocket icon
+- Sales channel
+- Platforms as badges
+- Post status breakdown (approved vs draft)
+
+**Tabbed Interface**:
+- **List View Tab**: Table with all posts
+- **Calendar View Tab**: Month grid with posts on scheduled dates
+
+### Post List View (Table)
+
+Enhanced table with 8 columns:
+1. **#** - Post number
+2. **Post Name** - Name + hook preview (if reel/story)
+3. **Core Message** - Main takeaway (truncated with tooltip)
+4. **Metrics to Track** - tracking_focus as badge
+5. **CTA** - Call-to-action text
+6. **Type** - Post format with icon (📷 image, 🎬 reel, 📋 carousel, 📸 story)
+7. **Scheduled Date** - Formatted date
+8. **Status** - Draft (gray) or Approved (green) badge
+
+**Features**:
+- Horizontal scroll on small screens
+- "Not set" placeholder for empty fields
+- Clickable rows open post detail modal
+- Hover effects
+
+### Post Calendar View
+
+**Layout**: Full month grid (6 weeks, 42 days)
+
+**Features**:
+- Month navigation with prev/next arrows
+- Days outside current month shown with reduced opacity
+- Important dates highlighted with accent border + rocket icon
+- Post cards show on scheduled dates
+- Color-coded by status:
+  - Green background: Approved posts
+  - Gray background: Draft posts
+- Post cards display:
+  - Post type emoji (📷 🎬 📋 📸)
+  - Post number
+  - Post name (truncated)
+
+**Legend** at bottom shows:
+- Status colors (Approved/Draft)
+- Important date marker
+- Post type icons
+
+### Post Detail Modal
+
+**Full-width responsive dialog** with organized sections:
+
+**Header**:
+- Post number badge
+- Post name (title)
+- Status badge (draft/approved)
+- Close button
+
+**Two-Column Layout**:
+
+**Left Column** (Metadata & Strategy):
+1. **Post Metadata Card**:
+   - Post type with icon
+   - Platforms as badges
+   - Scheduled date
+
+2. **Content Strategy Card**:
+   - Purpose
+   - Core message (emphasized)
+   - Behavioral trigger
+   - Strategy type badge
+
+3. **Metrics & CTA Card**:
+   - Tracking focus badge (color-coded by funnel stage)
+   - Call-to-action text
+
+**Right Column** (Content):
+1. **Hook Card** (reels/stories only):
+   - Opening line in muted background
+
+2. **Caption Card**:
+   - Full caption with line breaks
+   - Muted background
+
+3. **Visual Concept Card**:
+   - Parsed JSONB structure:
+     - Type
+     - Description
+     - Props
+     - Setting
+     - Style notes
+
+**Footer Navigation**:
+- ⬅️ Previous Post button (disabled at start)
+- Post position counter ("Post 3 of 15")
+- ➡️ Next Post button (disabled at end)
+
+**Color-Coded Tracking Focus** (funnel stages):
+- 🔵 **Blue** (Awareness): views, reach
+- 🟣 **Purple** (Consideration): saves, shares, clicks
+- 🟢 **Green** (Conversion): DMs, sign-ups, redemptions
+- 🟠 **Orange** (Engagement): comments, attendance
+
+**Empty States**:
+- Shows "No [field] generated yet" for missing content
+- All nullable fields gracefully handle null values
+
 ## AI Integration Strategy
 
 ### Campaign Generation (generate-content-plan)
 
 **Edge Function**: `/supabase/functions/generate-content-plan/index.ts`
 
-- **Trigger**: User submits campaign creation form (NO UI YET)
+- **Trigger**: User submits campaign creation form at `/create-campaign`
 - **AI Model**: OpenAI GPT-5 (`gpt-5-2025-08-07`)
 - **Method**: Tool calling with structured output for guaranteed JSON schema
 - **Input Context**: Brand Hub data + campaign form data
@@ -351,12 +566,25 @@ All AI generation uses brand hub data:
 ### Routing
 
 Routes are defined in `src/App.tsx`:
-- `/` - Landing page (complete)
-- `/auth` - Authentication/sign-in page (complete)
-- `/dashboard` - Main dashboard (skeleton only)
-- `*` - 404 error page (complete)
 
-Add custom routes ABOVE the catch-all `*` route.
+**Public Routes** (no authentication required):
+- `/` - Landing page with hero and CTA
+- `/features` - Features marketing page
+- `/pricing` - Pricing page with tier comparison
+- `/faq` - FAQ page
+- `/auth` - Authentication/sign-in page
+
+**Authenticated Routes** (wrapped in AppLayout with sidebar):
+- `/dashboard` - Main dashboard with getting started steps
+- `/brand-hub` - Brand hub setup and editing
+- `/content-manager` - Campaign list and post management
+- `/create-campaign` - Campaign creation form with AI generation
+- `/settings` - Settings page (basic structure)
+
+**Error Routes**:
+- `*` - 404 error page (catch-all)
+
+**Important**: Add custom routes ABOVE the catch-all `*` route in App.tsx.
 
 ### State Management
 
@@ -432,16 +660,21 @@ Add custom routes ABOVE the catch-all `*` route.
 
 ## MVP 1 Development Priorities
 
-### Phase 1: Core Content Creation Flow (CURRENT)
-✅ Database schema
-✅ Authentication
+### Phase 1: Core Content Creation Flow (MOSTLY COMPLETE)
+✅ Database schema with content strategy fields
+✅ Authentication (email/password)
 ✅ AI Edge Functions (backend)
-❌ Brand Hub UI (create/edit form)
-❌ Campaign Creation UI (form + AI generation trigger)
-❌ Calendar View (month grid with post cards)
-❌ Post Detail View (edit, regenerate, approve, delete)
+✅ Brand Hub UI (create/edit form)
+✅ Campaign Creation UI (form + AI generation trigger)
+✅ Campaign List View (ContentManager with campaign cards)
+✅ Calendar View (month grid with post cards)
+✅ Post List View (table with enhanced columns)
+✅ Post Detail View (view-only modal with navigation)
+⚠️ Post Editing (modal exists but no edit/save functionality)
+⚠️ Post Approval (no UI to toggle draft/approved status)
+❌ AI Regeneration UI (no "Regenerate with AI" button)
 ❌ Shot List View (display, checkboxes, export to TXT)
-❌ Campaign List View (list all campaigns, delete)
+❌ Campaign Deletion (no delete functionality)
 
 ### Phase 2: Subscription & Payments
 ❌ Stripe Checkout integration
@@ -531,31 +764,38 @@ Add custom routes ABOVE the catch-all `*` route.
 ## Known Issues & TODOs
 
 1. **Tier Naming Inconsistency**: Database has "starter/growth", Edge Function has "starter/pro/enterprise"
-2. **Usage Limit Enforcement**: Counters exist in database but no UI enforcement
-3. **Post Type Ambiguity**: "post_type" field stores content format (image/reel), but AI generates strategy type (educational/promotional). Need to clarify data model.
-4. **No UI Implementation**: All core MVP features are backend-only
-5. **No Stripe Integration**: Payment processing not implemented
-6. **No Error Recovery**: Edge Functions have basic try/catch but no retry logic or user-facing error handling
-7. **No Loading States**: AI generation takes 30-45 seconds with no user feedback
-8. **Shot List Not Auto-Generated**: No trigger to automatically call generate-shot-list after campaign creation
-9. **Test Data**: 4 seeded users exist in database, may want to clean up before production
+2. **Usage Limit Enforcement**: Counters exist in database but no UI enforcement or upgrade modals
+3. **Post Editing Not Functional**: PostDetailModal displays data but has no edit/save functionality
+4. **Post Approval UI Missing**: No button/toggle to change post status from draft to approved
+5. **AI Regeneration UI Missing**: No "Regenerate with AI" button in post detail modal
+6. **Shot List UI Missing**: Shot list is generated but no display/export/checkbox UI
+7. **Campaign Deletion Missing**: No delete campaign functionality with confirmation dialog
+8. **No Stripe Integration**: Payment processing, webhooks, and subscription management not implemented
+9. **Limited Error Recovery**: Edge Functions have basic try/catch but no retry logic or user-facing error handling
+10. **Shot List Not Auto-Generated**: No automatic trigger to call generate-shot-list after campaign creation
+11. **Test Data**: 4 seeded users exist in database, may want to clean up before production
 
 ## Next Immediate Steps
 
 To continue building this MVP, prioritize in this order:
 
-1. **Resolve Tier Naming** - Align database schema with Edge Function implementation
-2. **Brand Hub Page** (`/brand-hub`) - Form with validation, display existing hub
-3. **Campaign Creation Page** (`/campaign/create`) - Form + AI generation trigger + loading state
-4. **Campaign List** (`/campaigns`) - Query user's content plans, show post count
-5. **Calendar View** (`/campaign/:id/calendar`) - Month grid with posts
-6. **Post Detail** (`/campaign/:id/post/:postId`) - Display + edit + regenerate + approve
-7. **Shot List** (`/campaign/:id/shot-list`) - Display JSONB + checkboxes + export TXT
-8. **Stripe Integration** - Checkout + webhooks + subscription management
+1. **Post Editing Functionality** - Add edit mode to PostDetailModal with save/cancel
+2. **Post Approval Toggle** - Add button/toggle to change post status (draft ↔ approved)
+3. **AI Regeneration UI** - Add "Regenerate with AI" button in post detail modal
+4. **Shot List Display** - Create UI to display shot_list JSONB with checkboxes
+5. **Shot List Export** - Add "Export to TXT" functionality for offline use
+6. **Campaign Deletion** - Add delete button with confirmation dialog
+7. **Usage Limit Enforcement** - Show modals when post/regeneration limits reached
+8. **Resolve Tier Naming** - Align database schema with Edge Function implementation (starter/growth vs starter/pro/enterprise)
+9. **Stripe Integration** - Checkout + webhooks + subscription management
+10. **Auto-Generate Shot List** - Trigger generate-shot-list automatically after campaign creation
 
 ---
 
-**Last Updated**: Based on codebase analysis as of current commit
-**Database Migration**: `20251015143508_a0c9c542-eb14-4d33-955f-f4ef93ae2f94.sql`
+**Last Updated**: October 17, 2025
+**Latest Commit**: `16a28bd` - Comprehensive campaign and post management UI
+**Database Migrations**:
+- `20251015143508_[...]` - Complete schema + seed data
+- `20251017030524_[...]` - Content strategy fields (core_message, tracking_focus, cta, etc.)
 **Backend Status**: Complete (database + auth + Edge Functions)
-**Frontend Status**: Minimal (landing + auth pages only, dashboard is skeleton)
+**Frontend Status**: Core UI complete (Brand Hub, Campaign Creation, Content Manager with list/calendar/detail views)

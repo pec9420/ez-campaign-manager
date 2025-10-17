@@ -348,8 +348,8 @@ export default function BrandHub() {
     ) : null;
   };
 
-  // Show loading spinner while auth is loading OR while fetching brand hub data
-  if (authLoading || loading) {
+  // Show loading spinner only on initial load (when we don't have data yet)
+  if (authLoading || (loading && !existingHub && !businessName)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -9,7 +9,7 @@ import { ContentPlan, Post } from "@/types/database";
 import { toast } from "sonner";
 import CampaignCard from "@/components/CampaignCard";
 import CampaignDetailView from "@/components/CampaignDetailView";
-import PostDetailModal from "@/components/PostDetailModal";
+import PostCard from "@/components/PostCard";
 
 interface CampaignWithStats extends ContentPlan {
   postCount: number;
@@ -150,8 +150,8 @@ export default function ContentManager() {
     }
   };
 
-  // Show loading state
-  if (authLoading || loading) {
+  // Show loading state only on initial load (when we have no data yet)
+  if (authLoading || (loading && campaigns.length === 0)) {
     return (
       <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
         <div className="text-center">
@@ -178,12 +178,19 @@ export default function ContentManager() {
         </div>
 
         {/* Post Detail Modal */}
-        <PostDetailModal
+        <PostCard
           post={selectedPost}
           allPosts={selectedCampaignPosts}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           onNavigate={handleNavigatePost}
+          onPostUpdate={(updatedPost) => {
+            // Optimistic update: Replace the post in the local state
+            setSelectedCampaignPosts((prev) =>
+              prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+            );
+            setSelectedPost(updatedPost);
+          }}
         />
       </>
     );
