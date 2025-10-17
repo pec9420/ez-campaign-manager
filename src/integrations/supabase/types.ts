@@ -67,6 +67,7 @@ export type Database = {
           important_date: string | null
           important_date_label: string | null
           name: string
+          offers_promos: string | null
           platforms: string[]
           sales_channel_type: string
           shot_list: Json | null
@@ -83,6 +84,7 @@ export type Database = {
           important_date?: string | null
           important_date_label?: string | null
           name: string
+          offers_promos?: string | null
           platforms: string[]
           sales_channel_type: string
           shot_list?: Json | null
@@ -99,6 +101,7 @@ export type Database = {
           important_date?: string | null
           important_date_label?: string | null
           name?: string
+          offers_promos?: string | null
           platforms?: string[]
           sales_channel_type?: string
           shot_list?: Json | null
@@ -169,55 +172,76 @@ export type Database = {
       }
       posts: {
         Row: {
-          caption: string
+          behavioral_trigger: string | null
+          caption: string | null
           content_plan_id: string
+          core_message: string | null
           created_at: string | null
+          cta: string | null
           deleted: boolean | null
+          format: string | null
           hook: string | null
           id: string
           platforms: string[]
           post_name: string
           post_number: number
           post_type: string
+          purpose: string | null
           scheduled_date: string
           status: string | null
+          strategy_type: string | null
+          tracking_focus: string | null
           updated_at: string | null
           user_id: string
-          visual_concept: Json
+          visual_concept: Json | null
         }
         Insert: {
-          caption: string
+          behavioral_trigger?: string | null
+          caption?: string | null
           content_plan_id: string
+          core_message?: string | null
           created_at?: string | null
+          cta?: string | null
           deleted?: boolean | null
+          format?: string | null
           hook?: string | null
           id?: string
           platforms: string[]
           post_name: string
           post_number: number
           post_type: string
+          purpose?: string | null
           scheduled_date: string
           status?: string | null
+          strategy_type?: string | null
+          tracking_focus?: string | null
           updated_at?: string | null
           user_id: string
-          visual_concept: Json
+          visual_concept?: Json | null
         }
         Update: {
-          caption?: string
+          behavioral_trigger?: string | null
+          caption?: string | null
           content_plan_id?: string
+          core_message?: string | null
           created_at?: string | null
+          cta?: string | null
           deleted?: boolean | null
+          format?: string | null
           hook?: string | null
           id?: string
           platforms?: string[]
           post_name?: string
           post_number?: number
           post_type?: string
+          purpose?: string | null
           scheduled_date?: string
           status?: string | null
+          strategy_type?: string | null
+          tracking_focus?: string | null
           updated_at?: string | null
           user_id?: string
-          visual_concept?: Json
+          visual_concept?: Json | null
         }
         Relationships: [
           {
