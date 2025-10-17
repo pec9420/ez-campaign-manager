@@ -11,7 +11,8 @@ import FAQ from "./pages/FAQ";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import BrandHub from "./pages/BrandHub";
-import PostManager from "./pages/PostManager";
+import ContentManager from "./pages/ContentManager";
+import CreateCampaign from "./pages/CreateCampaign";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -34,7 +35,8 @@ const App = () => (
           {/* Authenticated routes with sidebar */}
           <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
           <Route path="/brand-hub" element={<AppLayout><BrandHub /></AppLayout>} />
-          <Route path="/post-manager" element={<AppLayout><PostManager /></AppLayout>} />
+          <Route path="/content-manager" element={<AppLayout><ContentManager /></AppLayout>} />
+          <Route path="/create-campaign" element={<AppLayout><CreateCampaign /></AppLayout>} />
           <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

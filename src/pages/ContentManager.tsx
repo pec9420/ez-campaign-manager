@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function PostManager() {
+export default function ContentManager() {
   const navigate = useNavigate();
 
   return (
@@ -11,9 +11,9 @@ export default function PostManager() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Post Manager</h1>
+          <h1 className="text-4xl font-bold mb-2">Content Manager</h1>
           <p className="text-muted-foreground text-lg">
-            View and manage all your social media posts
+            View and manage your campaigns and social media posts
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function PostManager() {
                   and visual concepts. You'll be able to manage and edit them here.
                 </CardDescription>
                 <Button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/create-campaign")}
                   className="bg-gradient-primary hover:opacity-90 shadow-lg"
                   size="lg"
                 >

@@ -105,9 +105,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       path: "/dashboard",
     },
     {
-      title: "Post Manager",
+      title: "Content Manager",
       icon: FileText,
-      path: "/post-manager",
+      path: "/content-manager",
     },
     {
       title: "Brand Hub",
