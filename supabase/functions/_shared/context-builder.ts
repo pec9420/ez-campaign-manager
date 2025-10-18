@@ -68,6 +68,15 @@ export function buildContext(
   brandHub: BrandHub,
   campaign: Campaign
 ): ContextPackage {
+  // Validate inputs
+  if (!brandHub) {
+    throw new Error('Brand Hub is required but was not provided');
+  }
+
+  if (!brandHub.business_name) {
+    throw new Error('Brand Hub is missing required field: business_name');
+  }
+
   // Calculate campaign duration
   const startDate = new Date(campaign.start_date);
   const endDate = new Date(campaign.end_date);

@@ -13,6 +13,7 @@ interface User {
   id: string;
   email: string;
   subscription_tier: string;
+  has_brand_hub?: boolean;
 }
 
 interface Campaign {
@@ -31,18 +32,33 @@ const Developer = () => {
   const [response, setResponse] = useState<any>(null);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dbTestResult, setDbTestResult] = useState<any>(null);
 
-  // Fetch all users
+  // Fetch all users with brand hub status
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['developer-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get all users
+      const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('id, email, subscription_tier')
         .order('email');
 
-      if (error) throw error;
-      return data as User[];
+      if (usersError) throw usersError;
+
+      // Get brand hub status for each user
+      const { data: brandHubs, error: brandHubsError } = await supabase
+        .from('brand_hub')
+        .select('user_id');
+
+      if (brandHubsError) throw brandHubsError;
+
+      const userIdsWithBrandHub = new Set(brandHubs?.map(bh => bh.user_id) || []);
+
+      return (usersData || []).map(user => ({
+        ...user,
+        has_brand_hub: userIdsWithBrandHub.has(user.id)
+      }));
     },
   });
 
@@ -71,6 +87,73 @@ const Developer = () => {
     }, null, 2));
   };
 
+  // Test database access for selected campaign
+  const handleTestDatabaseAccess = async () => {
+    if (!selectedCampaignId || !selectedUserId) {
+      toast.error('Please select a user and campaign first');
+      return;
+    }
+
+    setDbTestResult(null);
+
+    try {
+      // Fetch campaign
+      const { data: campaign, error: campaignError } = await supabase
+        .from('content_plans')
+        .select('*')
+        .eq('id', selectedCampaignId)
+        .single();
+
+      // Fetch user
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', selectedUserId)
+        .single();
+
+      // Fetch brand hub
+      const { data: brandHub, error: brandHubError } = await supabase
+        .from('brand_hub')
+        .select('*')
+        .eq('user_id', selectedUserId)
+        .single();
+
+      // Fetch ALL brand hubs (to see what exists)
+      const { data: allBrandHubs, error: allBrandHubsError } = await supabase
+        .from('brand_hub')
+        .select('id, user_id, business_name');
+
+      setDbTestResult({
+        campaign: {
+          found: !!campaign,
+          error: campaignError?.message,
+          data: campaign
+        },
+        user: {
+          found: !!user,
+          error: userError?.message,
+          data: user
+        },
+        brandHub: {
+          found: !!brandHub,
+          error: brandHubError?.message,
+          errorCode: brandHubError?.code,
+          data: brandHub
+        },
+        allBrandHubs: {
+          count: allBrandHubs?.length || 0,
+          error: allBrandHubsError?.message,
+          data: allBrandHubs
+        }
+      });
+
+      toast.success('Database access test complete');
+    } catch (err: any) {
+      console.error('Database test error:', err);
+      toast.error(`Test failed: ${err.message}`);
+    }
+  };
+
   // Test the orchestrate-campaign function
   const handleTestFunction = async () => {
     setIsLoading(true);
@@ -81,6 +164,13 @@ const Developer = () => {
     const startTime = Date.now();
 
     try {
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('No active session. Please log in.');
+      }
+
       // Parse JSON input
       let payload;
       try {
@@ -98,6 +188,7 @@ const Developer = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify(payload),
@@ -137,6 +228,32 @@ const Developer = () => {
         </div>
       </div>
 
+      {/* Database Test */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Database Access Test</CardTitle>
+          <CardDescription>Verify database connectivity and data existence</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button
+            onClick={handleTestDatabaseAccess}
+            disabled={!selectedUserId || !selectedCampaignId}
+            variant="outline"
+            className="w-full"
+          >
+            Test Database Access
+          </Button>
+
+          {dbTestResult && (
+            <div className="bg-muted p-4 rounded-lg overflow-auto max-h-[400px]">
+              <pre className="text-xs font-mono whitespace-pre-wrap">
+                {JSON.stringify(dbTestResult, null, 2)}
+              </pre>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Test Context Selector */}
       <Card>
         <CardHeader>
@@ -163,6 +280,7 @@ const Developer = () => {
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.email} ({user.subscription_tier})
+                      {user.has_brand_hub ? ' ✓' : ' ⚠️ No Brand Hub'}
                     </SelectItem>
                   ))}
                 </SelectContent>

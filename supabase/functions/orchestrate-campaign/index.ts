@@ -46,11 +46,20 @@ serve(async (req) => {
 
     console.log(`[orchestrate-campaign] Starting campaign generation for: ${content_plan_id}`);
 
+    // Log environment variables (mask the key)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+    console.log('[orchestrate-campaign] Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      supabaseUrl: supabaseUrl,
+      hasServiceRoleKey: !!serviceRoleKey,
+      serviceRoleKeyLength: serviceRoleKey.length,
+      serviceRoleKeyPrefix: serviceRoleKey.substring(0, 20) + '...'
+    });
+
     // Create Supabase client with service role
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
 
     // ============================================
     // STEP 1: Fetch all required data
@@ -111,6 +120,17 @@ serve(async (req) => {
 
     console.log(`[orchestrate-campaign] Fetching brand hub for user_id: ${contentPlan.user_id}`);
 
+    // First, check if ANY brand hubs exist
+    const { data: allBrandHubs, error: allBrandHubsError } = await supabaseClient
+      .from('brand_hub')
+      .select('id, user_id, business_name');
+
+    console.log('[orchestrate-campaign] ALL brand hubs in database:', {
+      count: allBrandHubs?.length || 0,
+      brandHubs: allBrandHubs,
+      error: allBrandHubsError
+    });
+
     // Fetch brand hub separately
     const { data: brandHub, error: brandHubError } = await supabaseClient
       .from('brand_hub')
@@ -122,8 +142,12 @@ serve(async (req) => {
       hasData: !!brandHub,
       hasError: !!brandHubError,
       error: brandHubError,
+      errorCode: brandHubError?.code,
+      errorDetails: brandHubError?.details,
+      errorHint: brandHubError?.hint,
       brandHubId: brandHub?.id,
-      businessName: brandHub?.business_name
+      businessName: brandHub?.business_name,
+      fullBrandHub: brandHub
     });
 
     if (brandHubError) {
