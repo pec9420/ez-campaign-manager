@@ -199,13 +199,14 @@ export default function PostCardView({
 
   // Handle platform toggle
   const handlePlatformToggle = (platform: string) => {
-    const newPlatforms = selectedPlatforms.includes(platform)
-      ? selectedPlatforms.filter((p) => p !== platform)
-      : selectedPlatforms.length < 3
-      ? [...selectedPlatforms, platform]
-      : selectedPlatforms;
+    const currentPlatforms = form.getValues("platforms") || [];
+    const newPlatforms = (currentPlatforms as string[]).includes(platform)
+      ? (currentPlatforms as string[]).filter((p) => p !== platform)
+      : currentPlatforms.length < 3
+      ? [...(currentPlatforms as string[]), platform]
+      : currentPlatforms;
 
-    form.setValue("platforms", newPlatforms, { shouldValidate: true, shouldDirty: true });
+    form.setValue("platforms", newPlatforms as any, { shouldValidate: true, shouldDirty: true });
   };
 
   return (

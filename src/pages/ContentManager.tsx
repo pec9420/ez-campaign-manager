@@ -84,7 +84,7 @@ export default function ContentManager() {
           })
         );
 
-        setCampaigns(campaignsWithStats);
+        setCampaigns(campaignsWithStats as any);
       } catch (error: any) {
         console.error("Error fetching campaigns:", error);
         toast.error("Failed to load campaigns", {
@@ -112,7 +112,7 @@ export default function ContentManager() {
 
       if (error) throw error;
 
-      setSelectedCampaignPosts(posts || []);
+      setSelectedCampaignPosts((posts || []) as any);
     } catch (error: any) {
       console.error("Error fetching posts:", error);
       toast.error("Failed to load posts", {

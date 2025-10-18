@@ -32,6 +32,11 @@ const campaignSchema = z.object({
   goal: z.string()
     .max(300, "Goal must be 300 characters or less")
     .optional(),
+  num_posts: z.number()
+    .int("Number of posts must be a whole number")
+    .min(0, "Minimum 0 posts")
+    .max(30, "Maximum 30 posts")
+    .default(10),
   start_date: z.string().min(1, "Start date is required"),
   end_date: z.string().min(1, "End date is required"),
   important_date_label: z.string().optional(),
