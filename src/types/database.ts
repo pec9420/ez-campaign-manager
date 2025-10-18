@@ -20,6 +20,7 @@ export interface BrandHub {
   what_makes_unique: string;
   target_customer: string;
   brand_vibe_words: string[];
+  other_notes?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +38,10 @@ export interface ContentPlan {
   sales_channel_type: 'website' | 'etsy' | 'amazon' | 'shopify' | 'instagram_shop' | 'local_market' | 'physical_store' | 'email_list' | 'other';
   platforms: string[];
   shot_list?: any;
+  offers_promos?: string | null;
+  num_posts: number;
+  context_package?: any;
+  strategy_framework?: any;
   created_at: string;
   updated_at: string;
 }
@@ -59,7 +64,6 @@ export interface Post {
   purpose?: string | null;
   core_message?: string | null;
   behavioral_trigger?: string | null;
-  format?: string | null;
   strategy_type?: string | null;
   tracking_focus?: string | null;
   cta?: string | null;

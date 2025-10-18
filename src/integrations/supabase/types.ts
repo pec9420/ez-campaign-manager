@@ -20,6 +20,7 @@ export type Database = {
           business_name: string
           created_at: string | null
           id: string
+          other_notes: string | null
           target_customer: string
           updated_at: string | null
           user_id: string
@@ -31,6 +32,7 @@ export type Database = {
           business_name: string
           created_at?: string | null
           id?: string
+          other_notes?: string | null
           target_customer: string
           updated_at?: string | null
           user_id: string
@@ -42,6 +44,7 @@ export type Database = {
           business_name?: string
           created_at?: string | null
           id?: string
+          other_notes?: string | null
           target_customer?: string
           updated_at?: string | null
           user_id?: string
@@ -60,6 +63,7 @@ export type Database = {
       }
       content_plans: {
         Row: {
+          context_package: Json | null
           created_at: string | null
           end_date: string
           goal: string | null
@@ -67,16 +71,19 @@ export type Database = {
           important_date: string | null
           important_date_label: string | null
           name: string
+          num_posts: number | null
           offers_promos: string | null
           platforms: string[]
           sales_channel_type: string
           shot_list: Json | null
           start_date: string
+          strategy_framework: Json | null
           updated_at: string | null
           user_id: string
           what_promoting: string
         }
         Insert: {
+          context_package?: Json | null
           created_at?: string | null
           end_date: string
           goal?: string | null
@@ -84,16 +91,19 @@ export type Database = {
           important_date?: string | null
           important_date_label?: string | null
           name: string
+          num_posts?: number | null
           offers_promos?: string | null
           platforms: string[]
           sales_channel_type: string
           shot_list?: Json | null
           start_date: string
+          strategy_framework?: Json | null
           updated_at?: string | null
           user_id: string
           what_promoting: string
         }
         Update: {
+          context_package?: Json | null
           created_at?: string | null
           end_date?: string
           goal?: string | null
@@ -101,11 +111,13 @@ export type Database = {
           important_date?: string | null
           important_date_label?: string | null
           name?: string
+          num_posts?: number | null
           offers_promos?: string | null
           platforms?: string[]
           sales_channel_type?: string
           shot_list?: Json | null
           start_date?: string
+          strategy_framework?: Json | null
           updated_at?: string | null
           user_id?: string
           what_promoting?: string
@@ -179,7 +191,6 @@ export type Database = {
           created_at: string | null
           cta: string | null
           deleted: boolean | null
-          format: string | null
           hook: string | null
           id: string
           platforms: string[]
@@ -203,7 +214,6 @@ export type Database = {
           created_at?: string | null
           cta?: string | null
           deleted?: boolean | null
-          format?: string | null
           hook?: string | null
           id?: string
           platforms: string[]
@@ -227,7 +237,6 @@ export type Database = {
           created_at?: string | null
           cta?: string | null
           deleted?: boolean | null
-          format?: string | null
           hook?: string | null
           id?: string
           platforms?: string[]

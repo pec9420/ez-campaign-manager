@@ -56,7 +56,7 @@ serve(async (req) => {
     }
 
     // Fetch user data to determine post limit
-    const { data: user, error: userError } = await supabaseClient
+    const { data: user, error: userError} = await supabaseClient
       .from('users')
       .select('subscription_tier, posts_created_this_period')
       .eq('id', contentPlan.user_id)
@@ -66,15 +66,10 @@ serve(async (req) => {
       throw new Error('User not found');
     }
 
-    // Determine post limit based on subscription tier
-    const postLimits: Record<string, number> = {
-      starter: 10,
-      pro: 50,
-      enterprise: 100, // practical limit even for unlimited tier
-    };
-    const postLimit = postLimits[user.subscription_tier] || 10;
+    // Use num_posts from content plan or calculate based on subscription tier
+    const postLimit = contentPlan.num_posts || 10;
 
-    console.log(`[generate-content-plan] User tier: ${user.subscription_tier}, generating ${postLimit} posts`);
+    console.log(`[generate-content-plan] Generating ${postLimit} posts`);
 
     // Build the AI prompt
     const systemPrompt = `You are a senior social-media strategist and behavioral-marketing expert.
@@ -112,6 +107,7 @@ BRAND CONTEXT:
 - Brand vibe: ${brandHub.brand_vibe_words.join(', ')}
 - Target customer: ${brandHub.target_customer}
 - What makes them unique: ${brandHub.what_makes_unique}
+${brandHub.other_notes ? `- Other notes: ${brandHub.other_notes}` : ''}
 
 CAMPAIGN DETAILS:
 - Campaign name: ${contentPlan.name}
@@ -156,7 +152,7 @@ Create ${postLimit} post blueprints. For each post provide:
 - purpose: One-sentence objective for this post
 - core_message: Main takeaway or value proposition
 - behavioral_trigger: ONE only (reciprocity / FOMO / scarcity / trust / nostalgia / belonging / curiosity / urgency)
-- format: reel / carousel / photo / story / video / update / offer / event / product
+- format: reel / carousel / image / story
 - tracking_focus: Primary KPI (views / saves / shares / comments / clicks / DMs / redemptions / attendance)
 - cta: Specific action (View Website / DM for Inquiries / Visit In-Store / Sign Up / Learn More / Share / Save)
 
@@ -224,7 +220,7 @@ Return the post blueprints using the tool.`;
                       },
                       format: {
                         type: 'string',
-                        enum: ['reel', 'carousel', 'photo', 'story', 'video', 'update', 'offer', 'event', 'product'],
+                        enum: ['reel', 'carousel', 'image', 'story'],
                         description: 'Content format type'
                       },
                       tracking_focus: {
@@ -270,30 +266,13 @@ Return the post blueprints using the tool.`;
     const generatedPosts = toolUseBlock.input.posts;
     console.log(`[generate-content-plan] Generated ${generatedPosts.length} posts`);
 
-    // Map blueprint format to database post_type (content format)
-    const formatToPostType = (format: string): string => {
-      const mapping: Record<string, string> = {
-        'photo': 'image',
-        'image': 'image',
-        'carousel': 'carousel',
-        'reel': 'reel',
-        'video': 'reel',  // Default videos to reels
-        'story': 'story',
-        'update': 'image',  // Google Business updates as images
-        'offer': 'carousel',  // Offers work well as carousels
-        'event': 'image',
-        'product': 'image'
-      };
-      return mapping[format] || 'image';
-    };
-
     // Insert posts into database
     const postsToInsert = generatedPosts.map((post: any, index: number) => ({
       content_plan_id: contentPlanId,
       user_id: contentPlan.user_id,
       post_number: index + 1,
       post_name: post.post_name,
-      post_type: formatToPostType(post.format),  // Map format to post_type (image/carousel/reel/story)
+      post_type: post.format,  // format is already one of: image/carousel/reel/story
       platforms: post.platforms,
       scheduled_date: post.scheduled_date,
       // Strategy fields (from content plan agent)
@@ -301,7 +280,6 @@ Return the post blueprints using the tool.`;
       purpose: post.purpose,
       core_message: post.core_message,
       behavioral_trigger: post.behavioral_trigger,
-      format: post.format,  // Original format from blueprint
       tracking_focus: post.tracking_focus,
       cta: post.cta,
       // Content fields (to be filled by copywriting/shot list agents)

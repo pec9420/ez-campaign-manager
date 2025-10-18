@@ -129,6 +129,7 @@ export default function CreateCampaign() {
       important_date_label: "",
       important_date: "",
       offers_promos: "",
+      num_posts: 10,
     },
   });
 
@@ -193,6 +194,7 @@ export default function CreateCampaign() {
           platforms: data.platforms,
           sales_channel_type: data.sales_channel_type,
           offers_promos: data.offers_promos || null,
+          num_posts: data.num_posts,
         })
         .select()
         .single();
@@ -208,8 +210,8 @@ export default function CreateCampaign() {
       // 3. Call edge function to generate content plan
       setIsGenerating(true);
       toast.info("Generating your content plan...", {
-        description: "This may take 30-45 seconds. Please wait.",
-        duration: 5000,
+        description: "This may take 60-90 seconds. Please wait.",
+        duration: 10000,
       });
 
       const { data: supabaseData } = await supabase.auth.getSession();
@@ -363,6 +365,27 @@ export default function CreateCampaign() {
                 </p>
                 {errors.goal && (
                   <p className="text-sm text-destructive">{errors.goal.message}</p>
+                )}
+              </div>
+
+              {/* Number of Posts */}
+              <div className="space-y-2">
+                <Label htmlFor="num_posts">
+                  Number of Posts to Generate <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="num_posts"
+                  type="number"
+                  {...register("num_posts", { valueAsNumber: true })}
+                  min={0}
+                  max={30}
+                  defaultValue={10}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Choose between 0-30 posts. We'll generate approximately this number based on your campaign dates.
+                </p>
+                {errors.num_posts && (
+                  <p className="text-sm text-destructive">{errors.num_posts.message}</p>
                 )}
               </div>
 

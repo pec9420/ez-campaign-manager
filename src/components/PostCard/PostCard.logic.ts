@@ -4,7 +4,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Post } from "@/types/database";
-import { postEditSchema, PostEditFormData, isContentLocked } from "@/lib/postValidation";
+import { 
+  postEditSchema, 
+  PostEditFormData, 
+  isContentLocked,
+  PLATFORMS,
+  STRATEGY_TYPES,
+  BEHAVIORAL_TRIGGERS,
+  TRACKING_FOCUS_OPTIONS
+} from "@/lib/postValidation";
 
 export interface PostCardLogicProps {
   post: Post | null;
@@ -31,11 +39,11 @@ export function usePostCardLogic({ post, onPostUpdate }: PostCardLogicProps) {
       ? {
           post_name: post.post_name || "",
           post_type: post.post_type || "image",
-          platforms: post.platforms || [],
+          platforms: (post.platforms || []) as typeof PLATFORMS[number][],
           scheduled_date: post.scheduled_date || "",
-          strategy_type: post.strategy_type || null,
-          behavioral_trigger: post.behavioral_trigger || null,
-          tracking_focus: post.tracking_focus || null,
+          strategy_type: (post.strategy_type || null) as typeof STRATEGY_TYPES[number] | null,
+          behavioral_trigger: (post.behavioral_trigger || null) as typeof BEHAVIORAL_TRIGGERS[number] | null,
+          tracking_focus: (post.tracking_focus || null) as typeof TRACKING_FOCUS_OPTIONS[number] | null,
           cta: post.cta || null,
           purpose: post.purpose || null,
           core_message: post.core_message || null,
@@ -54,11 +62,11 @@ export function usePostCardLogic({ post, onPostUpdate }: PostCardLogicProps) {
       form.reset({
         post_name: post.post_name || "",
         post_type: post.post_type || "image",
-        platforms: post.platforms || [],
+        platforms: (post.platforms || []) as typeof PLATFORMS[number][],
         scheduled_date: post.scheduled_date || "",
-        strategy_type: post.strategy_type || null,
-        behavioral_trigger: post.behavioral_trigger || null,
-        tracking_focus: post.tracking_focus || null,
+        strategy_type: (post.strategy_type || null) as typeof STRATEGY_TYPES[number] | null,
+        behavioral_trigger: (post.behavioral_trigger || null) as typeof BEHAVIORAL_TRIGGERS[number] | null,
+        tracking_focus: (post.tracking_focus || null) as typeof TRACKING_FOCUS_OPTIONS[number] | null,
         cta: post.cta || null,
         purpose: post.purpose || null,
         core_message: post.core_message || null,
@@ -193,11 +201,11 @@ export function usePostCardLogic({ post, onPostUpdate }: PostCardLogicProps) {
         form.reset({
           post_name: post.post_name || "",
           post_type: post.post_type || "image",
-          platforms: post.platforms || [],
+          platforms: (post.platforms || []) as typeof PLATFORMS[number][],
           scheduled_date: post.scheduled_date || "",
-          strategy_type: post.strategy_type || null,
-          behavioral_trigger: post.behavioral_trigger || null,
-          tracking_focus: post.tracking_focus || null,
+          strategy_type: (post.strategy_type || null) as typeof STRATEGY_TYPES[number] | null,
+          behavioral_trigger: (post.behavioral_trigger || null) as typeof BEHAVIORAL_TRIGGERS[number] | null,
+          tracking_focus: (post.tracking_focus || null) as typeof TRACKING_FOCUS_OPTIONS[number] | null,
           cta: post.cta || null,
           purpose: post.purpose || null,
           core_message: post.core_message || null,
