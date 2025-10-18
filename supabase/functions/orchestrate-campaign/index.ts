@@ -30,9 +30,13 @@ serve(async (req) => {
   }
 
   try {
-    const { content_plan_id } = await req.json();
+    const requestBody = await req.json();
+    console.log('[orchestrate-campaign] Request body:', requestBody);
+
+    const { content_plan_id } = requestBody;
 
     if (!content_plan_id) {
+      console.error('[orchestrate-campaign] Missing content_plan_id in request');
       throw new Error('Missing required parameter: content_plan_id');
     }
 
@@ -48,6 +52,8 @@ serve(async (req) => {
     // STEP 1: Fetch all required data
     // ============================================
 
+    console.log('[orchestrate-campaign] Fetching content plan...');
+
     // Fetch content plan
     const { data: contentPlan, error: planError } = await supabaseClient
       .from('content_plans')
@@ -55,9 +61,25 @@ serve(async (req) => {
       .eq('id', content_plan_id)
       .single();
 
-    if (planError || !contentPlan) {
+    console.log('[orchestrate-campaign] Content plan query result:', {
+      hasData: !!contentPlan,
+      hasError: !!planError,
+      error: planError,
+      planId: contentPlan?.id,
+      userId: contentPlan?.user_id
+    });
+
+    if (planError) {
+      console.error('[orchestrate-campaign] Content plan query error:', planError);
+      throw new Error(`Content plan query failed: ${planError.message}`);
+    }
+
+    if (!contentPlan) {
+      console.error('[orchestrate-campaign] Content plan not found for ID:', content_plan_id);
       throw new Error('Content Plan not found');
     }
+
+    console.log(`[orchestrate-campaign] Fetching user with ID: ${contentPlan.user_id}`);
 
     // Fetch user
     const { data: user, error: userError } = await supabaseClient
@@ -66,9 +88,24 @@ serve(async (req) => {
       .eq('id', contentPlan.user_id)
       .single();
 
-    if (userError || !user) {
+    console.log('[orchestrate-campaign] User query result:', {
+      hasData: !!user,
+      hasError: !!userError,
+      error: userError,
+      userId: user?.id
+    });
+
+    if (userError) {
+      console.error('[orchestrate-campaign] User query error:', userError);
+      throw new Error(`User query failed: ${userError.message}`);
+    }
+
+    if (!user) {
+      console.error('[orchestrate-campaign] User not found for ID:', contentPlan.user_id);
       throw new Error('User not found');
     }
+
+    console.log(`[orchestrate-campaign] Fetching brand hub for user_id: ${contentPlan.user_id}`);
 
     // Fetch brand hub separately
     const { data: brandHub, error: brandHubError } = await supabaseClient
@@ -77,11 +114,38 @@ serve(async (req) => {
       .eq('user_id', contentPlan.user_id)
       .single();
 
-    if (brandHubError || !brandHub) {
+    console.log('[orchestrate-campaign] Brand hub query result:', {
+      hasData: !!brandHub,
+      hasError: !!brandHubError,
+      error: brandHubError,
+      brandHubId: brandHub?.id,
+      businessName: brandHub?.business_name
+    });
+
+    if (brandHubError) {
+      console.error('[orchestrate-campaign] Brand hub query error:', brandHubError);
+      throw new Error(`Brand hub query failed: ${brandHubError.message} (code: ${brandHubError.code})`);
+    }
+
+    if (!brandHub) {
+      console.error('[orchestrate-campaign] Brand hub not found for user_id:', contentPlan.user_id);
+
+      // Additional debugging: try to count brand hubs for this user
+      const { count, error: countError } = await supabaseClient
+        .from('brand_hub')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', contentPlan.user_id);
+
+      console.log('[orchestrate-campaign] Brand hub count check:', {
+        count,
+        countError,
+        userId: contentPlan.user_id
+      });
+
       throw new Error('Brand Hub not found. Please set up your Brand Hub before creating a campaign.');
     }
 
-    console.log(`[orchestrate-campaign] Data fetched for ${brandHub.business_name}`);
+    console.log(`[orchestrate-campaign] Data successfully fetched for ${brandHub.business_name}`);
 
     // ============================================
     // STEP 2: Context Builder (no AI call)
