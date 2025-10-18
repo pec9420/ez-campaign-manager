@@ -59,18 +59,27 @@ serve(async (req) => {
       throw new Error('Content Plan not found');
     }
 
-    // Fetch user and brand hub
+    // Fetch user
     const { data: user, error: userError } = await supabaseClient
       .from('users')
-      .select('*, brand_hub(*)')
+      .select('*')
       .eq('id', contentPlan.user_id)
       .single();
 
-    if (userError || !user || !user.brand_hub || user.brand_hub.length === 0) {
-      throw new Error('User or Brand Hub not found');
+    if (userError || !user) {
+      throw new Error('User not found');
     }
 
-    const brandHub = user.brand_hub[0];
+    // Fetch brand hub separately
+    const { data: brandHub, error: brandHubError } = await supabaseClient
+      .from('brand_hub')
+      .select('*')
+      .eq('user_id', contentPlan.user_id)
+      .single();
+
+    if (brandHubError || !brandHub) {
+      throw new Error('Brand Hub not found. Please set up your Brand Hub before creating a campaign.');
+    }
 
     console.log(`[orchestrate-campaign] Data fetched for ${brandHub.business_name}`);
 

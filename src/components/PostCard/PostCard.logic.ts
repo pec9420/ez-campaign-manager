@@ -24,13 +24,10 @@ export function usePostCardLogic({ post, onPostUpdate }: PostCardLogicProps) {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-
-  // Strategy-first workflow states
-  const [strategyApproved, setStrategyApproved] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Determine if content fields should be locked (locked until strategy approved)
-  const contentLocked = !strategyApproved;
+  // Content is never locked - all fields editable immediately
+  const contentLocked = false;
 
   // Initialize form with post data
   const form = useForm<PostEditFormData>({
@@ -229,95 +226,6 @@ export function usePostCardLogic({ post, onPostUpdate }: PostCardLogicProps) {
     setIsEditMode(false); // Exit edit mode after saving
   });
 
-  /**
-   * Validate required strategy fields
-   */
-  const validateStrategyFields = useCallback(() => {
-    const formData = form.getValues();
-    const errors: string[] = [];
-
-    if (!formData.core_message?.trim()) errors.push("Core Message");
-    if (!formData.cta?.trim()) errors.push("Call-to-Action");
-    if (!formData.strategy_type) errors.push("Strategy Type");
-    if (!formData.tracking_focus) errors.push("Metrics to Track");
-    if (!formData.behavioral_trigger) errors.push("Behavioral Trigger");
-    if (!formData.purpose?.trim()) errors.push("Purpose");
-    if (!formData.platforms || formData.platforms.length === 0) errors.push("Platforms");
-    if (!formData.scheduled_date) errors.push("Scheduled Date");
-
-    return errors;
-  }, [form]);
-
-  /**
-   * Handle strategy approval and save to database
-   */
-  const handleApproveStrategy = useCallback(async () => {
-    if (!post) {
-      toast.error("No post selected");
-      return;
-    }
-
-    // Validate required fields
-    const errors = validateStrategyFields();
-    if (errors.length > 0) {
-      toast.error("Missing required fields", {
-        description: `Please fill in: ${errors.join(", ")}`,
-      });
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const formData = form.getValues();
-
-      // Save only strategy fields to database
-      const { error } = await supabase
-        .from("posts")
-        .update({
-          post_name: formData.post_name,
-          post_type: formData.post_type,
-          platforms: formData.platforms,
-          scheduled_date: formData.scheduled_date,
-          strategy_type: formData.strategy_type,
-          behavioral_trigger: formData.behavioral_trigger,
-          tracking_focus: formData.tracking_focus,
-          cta: formData.cta,
-          purpose: formData.purpose,
-          core_message: formData.core_message,
-        })
-        .eq("id", post.id);
-
-      if (error) throw error;
-
-      // Lock strategy, unlock content
-      setStrategyApproved(true);
-      setLastSavedAt(new Date());
-      form.reset(formData); // Reset dirty state
-      setIsDirty(false);
-
-      toast.success("Strategy approved", {
-        description: "Content fields unlocked. Ready for generation.",
-      });
-    } catch (error: any) {
-      console.error("Error saving strategy:", error);
-      toast.error("Save failed", {
-        description: error.message || "Please try again.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [post, form, validateStrategyFields]);
-
-  /**
-   * Handle editing strategy (unlock strategy, re-lock content)
-   */
-  const handleEditStrategy = useCallback(() => {
-    setStrategyApproved(false);
-    toast.info("Strategy unlocked", {
-      description: "Content fields locked until you approve again.",
-    });
-  }, []);
 
   /**
    * Check if save button should be disabled
@@ -334,13 +242,9 @@ export function usePostCardLogic({ post, onPostUpdate }: PostCardLogicProps) {
     isSaving,
     lastSavedAt,
     contentLocked,
-    strategyApproved,
     isGenerating,
     toggleEditMode,
     onSubmit,
     isSaveDisabled,
-    handleApproveStrategy,
-    handleEditStrategy,
-    validateStrategyFields,
   };
 }

@@ -68,13 +68,10 @@ interface PostCardViewProps {
   isSaving: boolean;
   lastSavedAt: Date | null;
   contentLocked: boolean;
-  strategyApproved: boolean;
   isGenerating: boolean;
   toggleEditMode: () => void;
   onSubmit: () => Promise<void>;
   isSaveDisabled: boolean;
-  handleApproveStrategy: () => Promise<void>;
-  handleEditStrategy: () => void;
 }
 
 const getPostTypeIcon = (postType: string) => {
@@ -132,13 +129,10 @@ export default function PostCardView({
   isSaving,
   lastSavedAt,
   contentLocked,
-  strategyApproved,
   isGenerating,
   toggleEditMode,
   onSubmit,
   isSaveDisabled,
-  handleApproveStrategy,
-  handleEditStrategy,
 }: PostCardViewProps) {
   if (!post) return null;
 
@@ -225,7 +219,7 @@ export default function PostCardView({
 
             {/* Center: Status Indicator */}
             <div className="flex-1 text-center">
-              {isDirty && !strategyApproved && (
+              {isDirty && (
                 <span className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                   <AlertCircle className="w-4 h-4" />
                   Unsaved changes
@@ -245,44 +239,25 @@ export default function PostCardView({
 
             {/* Right: Action Buttons */}
             <div className="flex gap-2">
-              {!strategyApproved ? (
-                <Button
-                  type="button"
-                  onClick={handleApproveStrategy}
-                  disabled={isSaving}
-                  size="sm"
-                  className="bg-gradient-primary"
-                  aria-label="Approve strategy and generate content"
-                >
-                  {isSaving ? (
-                    <>Saving...</>
-                  ) : (
-                    <>
-                      Approve Strategy & Generate Content ▶︎
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    // Placeholder for future AI generation
-                    toast.info("Content generation coming soon!");
-                  }}
-                  disabled={isGenerating}
-                  size="sm"
-                  variant="outline"
-                  aria-label="Regenerate content"
-                >
-                  {isGenerating ? (
-                    <>Generating...</>
-                  ) : (
-                    <>
-                      Regenerate Content (1 credit)
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                type="button"
+                onClick={() => {
+                  // Placeholder for future AI regeneration
+                  toast.info("Content regeneration coming soon!");
+                }}
+                disabled={isGenerating}
+                size="sm"
+                variant="outline"
+                aria-label="Regenerate content"
+              >
+                {isGenerating ? (
+                  <>Generating...</>
+                ) : (
+                  <>
+                    Regenerate with AI (1 credit)
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
@@ -329,7 +304,6 @@ export default function PostCardView({
                           {...form.register("post_name")}
                           maxLength={50}
                           placeholder="e.g., Summer Launch Teaser"
-                          disabled={strategyApproved}
                           className="text-[15px] h-9"
                         />
                         <p className="text-[13px] text-muted-foreground">
@@ -355,9 +329,8 @@ export default function PostCardView({
                                 shouldDirty: true,
                               })
                             }
-                            disabled={strategyApproved}
                           >
-                            <SelectTrigger id="post_type" disabled={strategyApproved}>
+                            <SelectTrigger id="post_type">
                               <SelectValue placeholder="Select post type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -389,15 +362,14 @@ export default function PostCardView({
                                   checked={selectedPlatforms.includes(platform)}
                                   onCheckedChange={() => handlePlatformToggle(platform)}
                                   disabled={
-                                    strategyApproved ||
-                                    (!selectedPlatforms.includes(platform) &&
-                                      selectedPlatforms.length >= 3)
+                                    !selectedPlatforms.includes(platform) &&
+                                    selectedPlatforms.length >= 3
                                   }
                                   className="h-4 w-4"
                                 />
                                 <Label
                                   htmlFor={`platform-${platform}`}
-                                  className={`text-[15px] ${strategyApproved ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                                  className="text-[15px] cursor-pointer"
                                 >
                                   {PLATFORM_LABELS[platform]}
                                 </Label>
@@ -419,7 +391,6 @@ export default function PostCardView({
                           id="scheduled_date"
                           type="date"
                           {...form.register("scheduled_date")}
-                          disabled={strategyApproved}
                           className="text-[15px] h-9"
                         />
                         {form.formState.errors.scheduled_date && (
@@ -448,7 +419,6 @@ export default function PostCardView({
                           placeholder="Main takeaway your audience should remember"
                           maxLength={150}
                           rows={2}
-                          disabled={strategyApproved}
                           className="text-[15px] resize-none"
                         />
                         <p className="text-[13px] text-muted-foreground">
@@ -469,7 +439,6 @@ export default function PostCardView({
                           {...form.register("cta")}
                           placeholder="e.g., Shop now, Learn more, Sign up"
                           maxLength={100}
-                          disabled={strategyApproved}
                           className="text-[15px] h-9"
                         />
                         <p className="text-[13px] text-muted-foreground">
@@ -503,9 +472,8 @@ export default function PostCardView({
                               shouldDirty: true,
                             })
                           }
-                          disabled={strategyApproved}
                         >
-                          <SelectTrigger id="tracking_focus" disabled={strategyApproved}>
+                          <SelectTrigger id="tracking_focus">
                             <SelectValue placeholder="What will you track?" />
                           </SelectTrigger>
                           <SelectContent>
@@ -529,7 +497,6 @@ export default function PostCardView({
                           type="button"
                           onClick={() => setShowAdvanced(!showAdvanced)}
                           className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors py-1"
-                          disabled={strategyApproved}
                         >
                           {showAdvanced ? (
                             <>
@@ -559,9 +526,8 @@ export default function PostCardView({
                                   shouldDirty: true,
                                 })
                               }
-                              disabled={strategyApproved}
                             >
-                              <SelectTrigger id="strategy_type" disabled={strategyApproved}>
+                              <SelectTrigger id="strategy_type">
                                 <SelectValue placeholder="Select strategy type" />
                               </SelectTrigger>
                               <SelectContent>
@@ -588,7 +554,6 @@ export default function PostCardView({
                               placeholder="One-sentence objective for this post"
                               maxLength={300}
                               rows={2}
-                              disabled={strategyApproved}
                               className="text-[15px] resize-none"
                             />
                             <p className="text-[13px] text-muted-foreground">
@@ -612,9 +577,8 @@ export default function PostCardView({
                                   shouldDirty: true,
                                 })
                               }
-                              disabled={strategyApproved}
                             >
-                              <SelectTrigger id="behavioral_trigger" disabled={strategyApproved}>
+                              <SelectTrigger id="behavioral_trigger">
                                 <SelectValue placeholder="Select trigger" />
                               </SelectTrigger>
                               <SelectContent>
@@ -640,27 +604,7 @@ export default function PostCardView({
 
               {/* CONTENT TAB */}
               <TabsContent value="content" className="mt-4">
-                {contentLocked ? (
-                  <Card>
-                    <CardContent className="py-8 text-center">
-                      <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-                      <h3 className="text-[16px] font-semibold mb-2">Content Locked</h3>
-                      <p className="text-[14px] text-muted-foreground mb-4">
-                        Approve your strategy first to unlock the caption and hook fields.
-                      </p>
-                      <Button
-                        type="button"
-                        onClick={handleApproveStrategy}
-                        disabled={isSaving}
-                        className="bg-gradient-primary text-[15px]"
-                        size="sm"
-                      >
-                        {isSaving ? "Saving..." : "← Back to Strategy Tab"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
+                <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-[15px] font-semibold uppercase tracking-wide text-muted-foreground">
                         📝 Content
@@ -729,32 +673,11 @@ export default function PostCardView({
                       </div>
                     </CardContent>
                   </Card>
-                )}
               </TabsContent>
 
               {/* VISUAL TAB */}
               <TabsContent value="visual" className="mt-4">
-                {contentLocked ? (
-                  <Card>
-                    <CardContent className="py-8 text-center">
-                      <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-                      <h3 className="text-[16px] font-semibold mb-2">Content Locked</h3>
-                      <p className="text-[14px] text-muted-foreground mb-4">
-                        Approve your strategy first to unlock the visual concept.
-                      </p>
-                      <Button
-                        type="button"
-                        onClick={handleApproveStrategy}
-                        disabled={isSaving}
-                        className="bg-gradient-primary text-[15px]"
-                        size="sm"
-                      >
-                        {isSaving ? "Saving..." : "← Back to Strategy Tab"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
+                <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-[15px] font-semibold uppercase tracking-wide text-muted-foreground">
                         🎨 Visual Concept
@@ -844,7 +767,6 @@ export default function PostCardView({
                       )}
                     </CardContent>
                   </Card>
-                )}
               </TabsContent>
             </Tabs>
 
