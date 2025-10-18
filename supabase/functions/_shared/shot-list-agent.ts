@@ -87,6 +87,11 @@ export async function generateShotList(
   const prompt = buildShotListPrompt(context, strategy, formatCounts);
 
   try {
+    console.log('[shot-list-agent] Starting API call to Claude Sonnet 4.5');
+    console.log('[shot-list-agent] Estimated input tokens:', Math.floor(prompt.length / 4));
+    
+    const startTime = Date.now();
+    
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",
       max_tokens: 8192,
@@ -97,6 +102,15 @@ export async function generateShotList(
           content: prompt
         }
       ]
+    });
+
+    const duration = Date.now() - startTime;
+    
+    console.log('[shot-list-agent] API call completed:', {
+      duration_ms: duration,
+      input_tokens: message.usage?.input_tokens,
+      output_tokens: message.usage?.output_tokens,
+      model: message.model
     });
 
     // Extract JSON from response
@@ -121,10 +135,26 @@ export async function generateShotList(
       checked: shot.checked || false
     }));
 
+    console.log('[shot-list-agent] Shot list parsed successfully:', {
+      total_shots: shotList.shots.length
+    });
+
     return shotList;
 
   } catch (error) {
-    console.error("Shot list generation error:", error);
+    console.error("[shot-list-agent] Error:", error);
+    
+    // Log rate limit info if available
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as any;
+      console.error('[shot-list-agent] API Error Details:', {
+        status: apiError.status,
+        type: apiError.error?.type,
+        message: apiError.error?.error?.message,
+        headers: apiError.headers
+      });
+    }
+    
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to generate shot list: ${errorMessage}`);
   }

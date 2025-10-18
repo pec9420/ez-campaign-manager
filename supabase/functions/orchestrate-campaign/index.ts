@@ -189,21 +189,32 @@ serve(async (req) => {
     // STEP 3: Strategy Agent (Sonnet 4.5 call #1)
     // ============================================
 
-    console.log('[orchestrate-campaign] Generating content strategy...');
+    console.log('[orchestrate-campaign] ===== STEP 3: Generating Strategy =====');
+    const strategyStartTime = Date.now();
 
     const strategy = await generateStrategy(context, contentPlan);
 
-    console.log(`[orchestrate-campaign] Strategy generated: ${strategy.weekly_phases.length} phases`);
+    const strategyDuration = Date.now() - strategyStartTime;
+    console.log(`[orchestrate-campaign] ✓ Strategy generated in ${strategyDuration}ms:`, {
+      phases: strategy.weekly_phases.length,
+      themes: strategy.content_themes.length,
+      shot_requirements: strategy.shot_requirements.length
+    });
 
     // ============================================
     // STEP 4: Shot List Agent (Sonnet 4.5 call #2)
     // ============================================
 
-    console.log('[orchestrate-campaign] Generating shot list...');
+    console.log('[orchestrate-campaign] ===== STEP 4: Generating Shot List =====');
+    const shotListStartTime = Date.now();
 
     const shotList = await generateShotList(context, strategy);
 
-    console.log(`[orchestrate-campaign] Shot list generated: ${shotList.shots.length} shots`);
+    const shotListDuration = Date.now() - shotListStartTime;
+    console.log(`[orchestrate-campaign] ✓ Shot list generated in ${shotListDuration}ms:`, {
+      total_shots: shotList.shots.length,
+      themes: shotList.themes.length
+    });
 
     // ============================================
     // STEP 5: Save strategy + shot list to database
@@ -229,15 +240,16 @@ serve(async (req) => {
     }
 
     // ============================================
-    // STEP 6: Generate all posts in parallel
+    // STEP 6: Generate posts in batches (rate limit mitigation)
     // ============================================
 
     // Calculate total posts and assign details
     const totalPosts = strategy.weekly_phases.reduce((sum, phase) => sum + phase.post_count, 0);
 
-    console.log(`[orchestrate-campaign] Generating ${totalPosts} posts in parallel...`);
+    console.log('[orchestrate-campaign] ===== STEP 6: Generating Posts =====');
+    console.log(`[orchestrate-campaign] Total posts to generate: ${totalPosts}`);
 
-    const postPromises = [];
+    const allPostDetails = [];
     let postCounter = 0;
 
     // Iterate through weekly phases and assign posts
@@ -253,7 +265,7 @@ serve(async (req) => {
       for (let i = 0; i < phase.post_count; i++) {
         postCounter++;
 
-        const postDetails = {
+        allPostDetails.push({
           post_number: postCounter,
           scheduled_date: calculateScheduledDate(
             contentPlan.start_date,
@@ -266,18 +278,79 @@ serve(async (req) => {
           phase: phase.phase,
           theme: phaseThemes[i % phaseThemes.length] || strategy.content_themes[0].theme,
           platforms: contentPlan.platforms
-        };
-
-        postPromises.push(
-          generatePost(context, strategy, shotList, postDetails)
-        );
+        });
       }
     }
 
-    // Execute all post generations in parallel
-    const posts = await Promise.all(postPromises);
+    // Generate posts in batches to avoid rate limits
+    const BATCH_SIZE = 4; // Process 4 posts at a time
+    const BATCH_DELAY = 2000; // 2 second delay between batches
+    
+    const posts = [];
+    const errors = [];
+    const batchCount = Math.ceil(allPostDetails.length / BATCH_SIZE);
+    
+    console.log(`[orchestrate-campaign] Processing ${batchCount} batches of ${BATCH_SIZE} posts`);
+    
+    for (let batchIndex = 0; batchIndex < batchCount; batchIndex++) {
+      const batchStart = batchIndex * BATCH_SIZE;
+      const batchEnd = Math.min(batchStart + BATCH_SIZE, allPostDetails.length);
+      const batch = allPostDetails.slice(batchStart, batchEnd);
+      
+      console.log(`[orchestrate-campaign] ----- Batch ${batchIndex + 1}/${batchCount}: Posts ${batchStart + 1}-${batchEnd} -----`);
+      
+      const batchStartTime = Date.now();
+      
+      // Generate this batch in parallel
+      const batchResults = await Promise.allSettled(
+        batch.map(postDetails => generatePost(context, strategy, shotList, postDetails))
+      );
+      
+      const batchDuration = Date.now() - batchStartTime;
+      
+      // Process results
+      let successCount = 0;
+      let failureCount = 0;
+      
+      batchResults.forEach((result, index) => {
+        const postNumber = batch[index].post_number;
+        
+        if (result.status === 'fulfilled') {
+          posts.push(result.value);
+          successCount++;
+        } else {
+          errors.push({
+            post_number: postNumber,
+            error: result.reason?.message || 'Unknown error'
+          });
+          failureCount++;
+          console.error(`[orchestrate-campaign] ✗ Post ${postNumber} failed:`, result.reason?.message);
+        }
+      });
+      
+      console.log(`[orchestrate-campaign] Batch ${batchIndex + 1} completed in ${batchDuration}ms:`, {
+        success: successCount,
+        failed: failureCount,
+        total: batch.length
+      });
+      
+      // Add delay between batches (except after last batch)
+      if (batchIndex < batchCount - 1) {
+        console.log(`[orchestrate-campaign] Waiting ${BATCH_DELAY}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+      }
+    }
 
-    console.log(`[orchestrate-campaign] ${posts.length} posts generated successfully`);
+    console.log(`[orchestrate-campaign] ===== Post Generation Complete =====`);
+    console.log(`[orchestrate-campaign] Results:`, {
+      successful: posts.length,
+      failed: errors.length,
+      total: totalPosts
+    });
+    
+    if (errors.length > 0) {
+      console.error('[orchestrate-campaign] Failed posts:', errors);
+    }
 
     // ============================================
     // STEP 7: Bulk insert posts into database

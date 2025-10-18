@@ -100,6 +100,15 @@ export async function generatePost(
   const prompt = buildPostPrompt(context, strategy, shotList, postDetails);
 
   try {
+    console.log(`[post-generator] Starting Post ${postDetails.post_number}:`, {
+      type: postDetails.post_type,
+      phase: postDetails.phase,
+      theme: postDetails.theme,
+      date: postDetails.scheduled_date
+    });
+    
+    const startTime = Date.now();
+    
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",
       max_tokens: 4096,
@@ -110,6 +119,14 @@ export async function generatePost(
           content: prompt
         }
       ]
+    });
+
+    const duration = Date.now() - startTime;
+    
+    console.log(`[post-generator] Post ${postDetails.post_number} completed:`, {
+      duration_ms: duration,
+      input_tokens: message.usage?.input_tokens,
+      output_tokens: message.usage?.output_tokens
     });
 
     // Extract JSON from response
@@ -128,6 +145,8 @@ export async function generatePost(
     const jsonText = jsonMatch[1] || jsonMatch[0];
     const post = JSON.parse(jsonText);
 
+    console.log(`[post-generator] ✓ Post ${postDetails.post_number} parsed successfully`);
+
     // Ensure required fields are present
     return {
       post_number: postDetails.post_number,
@@ -139,7 +158,26 @@ export async function generatePost(
     };
 
   } catch (error) {
-    console.error(`Post ${postDetails.post_number} generation error:`, error);
+    console.error(`[post-generator] ✗ Post ${postDetails.post_number} generation error:`, error);
+    
+    // Log rate limit info if available
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as any;
+      console.error(`[post-generator] Post ${postDetails.post_number} API Error:`, {
+        status: apiError.status,
+        type: apiError.error?.type,
+        message: apiError.error?.error?.message,
+        rate_limit_headers: {
+          requests_limit: apiError.headers?.['anthropic-ratelimit-requests-limit'],
+          requests_remaining: apiError.headers?.['anthropic-ratelimit-requests-remaining'],
+          tokens_limit: apiError.headers?.['anthropic-ratelimit-tokens-limit'],
+          tokens_remaining: apiError.headers?.['anthropic-ratelimit-tokens-remaining'],
+          input_tokens_limit: apiError.headers?.['anthropic-ratelimit-input-tokens-limit'],
+          input_tokens_remaining: apiError.headers?.['anthropic-ratelimit-input-tokens-remaining'],
+        }
+      });
+    }
+    
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to generate post ${postDetails.post_number}: ${errorMessage}`);
   }

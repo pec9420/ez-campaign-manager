@@ -68,6 +68,11 @@ export async function generateStrategy(
   const prompt = buildStrategyPrompt(context, campaign, dayCount, targetPosts);
 
   try {
+    console.log('[strategy-agent] Starting API call to Claude Sonnet 4.5');
+    console.log('[strategy-agent] Estimated input tokens:', Math.floor(prompt.length / 4));
+    
+    const startTime = Date.now();
+    
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",
       max_tokens: 8192,
@@ -78,6 +83,15 @@ export async function generateStrategy(
           content: prompt
         }
       ]
+    });
+
+    const duration = Date.now() - startTime;
+    
+    console.log('[strategy-agent] API call completed:', {
+      duration_ms: duration,
+      input_tokens: message.usage?.input_tokens,
+      output_tokens: message.usage?.output_tokens,
+      model: message.model
     });
 
     // Extract JSON from response
@@ -96,10 +110,24 @@ export async function generateStrategy(
     const jsonText = jsonMatch[1] || jsonMatch[0];
     const strategy: StrategyOutput = JSON.parse(jsonText);
 
+    console.log('[strategy-agent] Strategy parsed successfully');
+
     return strategy;
 
   } catch (error) {
-    console.error("Strategy generation error:", error);
+    console.error("[strategy-agent] Error:", error);
+    
+    // Log rate limit info if available
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as any;
+      console.error('[strategy-agent] API Error Details:', {
+        status: apiError.status,
+        type: apiError.error?.type,
+        message: apiError.error?.error?.message,
+        headers: apiError.headers
+      });
+    }
+    
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to generate strategy: ${errorMessage}`);
   }
