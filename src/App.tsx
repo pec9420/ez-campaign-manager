@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
-import Auth from "./pages/Auth";
+import SelectUser from "./pages/SelectUser";
 import Dashboard from "./pages/Dashboard";
 import BrandHub from "./pages/BrandHub";
 import ContentManager from "./pages/ContentManager";
@@ -30,7 +30,7 @@ const App = () => (
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/select-user" element={<SelectUser />} />
 
           {/* Authenticated routes with sidebar */}
           <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />

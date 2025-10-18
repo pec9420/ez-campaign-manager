@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -114,7 +114,7 @@ const SALES_CHANNELS = [
 ];
 
 export default function CreateCampaign() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useUser();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -140,10 +140,10 @@ export default function CreateCampaign() {
 
   const salesChannelValue = watch("sales_channel_type");
 
-  // Redirect to auth if not logged in (but wait for loading to finish)
+  // Redirect to user selection if not logged in (but wait for loading to finish)
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      navigate("/select-user");
     }
   }, [user, loading, navigate]);
 
@@ -162,7 +162,7 @@ export default function CreateCampaign() {
   const onSubmit = async (data: CampaignFormData) => {
     if (!user) {
       toast.error("You must be logged in to create a campaign");
-      navigate("/auth");
+      navigate("/select-user");
       return;
     }
 
@@ -219,9 +219,6 @@ export default function CreateCampaign() {
         duration: 10000,
       });
 
-      const { data: supabaseData } = await supabase.auth.getSession();
-      const accessToken = supabaseData?.session?.access_token;
-
       console.log('[CreateCampaign] Calling orchestrate-campaign edge function...', {
         content_plan_id: campaign.id,
       });
@@ -232,7 +229,7 @@ export default function CreateCampaign() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
             content_plan_id: campaign.id,

@@ -30,7 +30,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
               size="lg"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/select-user')}
               className="bg-gradient-primary hover:opacity-90 transition-opacity shadow-lg text-lg px-8"
             >
               Get Started Free
@@ -38,7 +38,7 @@ const Index = () => {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/select-user')}
               className="text-lg px-8"
             >
               View Demo
@@ -104,7 +104,7 @@ const Index = () => {
           </p>
           <Button
             size="lg"
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/select-user')}
             className="bg-background text-foreground hover:bg-background/90 text-lg px-8 shadow-lg"
           >
             Start Planning Now

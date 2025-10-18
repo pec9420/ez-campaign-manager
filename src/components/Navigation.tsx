@@ -50,12 +50,12 @@ const Navigation = () => {
           <div className="hidden md:flex items-center gap-3">
             <Button
               variant="ghost"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/select-user')}
             >
               Sign In
             </Button>
             <Button
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/select-user')}
               className="bg-gradient-primary hover:opacity-90 transition-opacity shadow-lg"
             >
               Get Started
@@ -99,7 +99,7 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    navigate('/auth');
+                    navigate('/select-user');
                     setMobileMenuOpen(false);
                   }}
                   className="w-full"
@@ -108,7 +108,7 @@ const Navigation = () => {
                 </Button>
                 <Button
                   onClick={() => {
-                    navigate('/auth');
+                    navigate('/select-user');
                     setMobileMenuOpen(false);
                   }}
                   className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"

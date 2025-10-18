@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -71,7 +71,7 @@ const brandHubSchema = z.object({
 type BrandHubFormData = z.infer<typeof brandHubSchema>;
 
 export default function BrandHub() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -190,8 +190,8 @@ export default function BrandHub() {
 
     // If auth is done loading and there's no user, redirect
     if (!user) {
-      console.log('[BrandHub] No user found, redirecting to auth');
-      navigate("/auth");
+      console.log('[BrandHub] No user found, redirecting to user selection');
+      navigate("/select-user");
       return;
     }
 

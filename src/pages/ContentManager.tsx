@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { FileText, Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
 import { ContentPlan, Post } from "@/types/database";
 import { toast } from "sonner";
 import CampaignCard from "@/components/CampaignCard";
@@ -17,7 +17,7 @@ interface CampaignWithStats extends ContentPlan {
 }
 
 export default function ContentManager() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useUser();
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<CampaignWithStats[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<ContentPlan | null>(null);
@@ -26,10 +26,10 @@ export default function ContentManager() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Redirect to auth if not logged in
+  // Redirect to user selection if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/auth");
+      navigate("/select-user");
     }
   }, [user, authLoading, navigate]);
 

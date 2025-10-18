@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import {
   Sidebar,
@@ -53,18 +53,18 @@ const SUBSCRIPTION_LIMITS = {
 };
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { user } = useAuth();
+  const { user, loading: userLoading, logout } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Redirect to auth if not logged in
+  // Redirect to user selection if not logged in
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
+    if (!userLoading && !user) {
+      navigate("/select-user");
     }
-  }, [user, navigate]);
+  }, [user, userLoading, navigate]);
 
   // Fetch user data
   useEffect(() => {
@@ -91,10 +91,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     fetchUserData();
   }, [user]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    logout();
     toast.success("Signed out successfully");
-    navigate("/auth");
+    navigate("/select-user");
   };
 
   // Navigation items
