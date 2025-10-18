@@ -222,13 +222,12 @@ export default function CreateCampaign() {
       const { data: supabaseData } = await supabase.auth.getSession();
       const accessToken = supabaseData?.session?.access_token;
 
-      console.log('[CreateCampaign] Calling generate-content-plan edge function...', {
-        brandHubId: brandHub.id,
-        contentPlanId: campaign.id,
+      console.log('[CreateCampaign] Calling orchestrate-campaign edge function...', {
+        content_plan_id: campaign.id,
       });
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-content-plan`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/orchestrate-campaign`,
         {
           method: "POST",
           headers: {
@@ -236,8 +235,7 @@ export default function CreateCampaign() {
             Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            brandHubId: brandHub.id,
-            contentPlanId: campaign.id,
+            content_plan_id: campaign.id,
           }),
         }
       );
@@ -261,7 +259,7 @@ export default function CreateCampaign() {
 
       // 4. Success! Navigate to content manager
       toast.success("Campaign created successfully!", {
-        description: `Generated ${result.postsGenerated} posts for your campaign.`,
+        description: `Generated ${result.posts_created} posts and ${result.shots_created} shots for your campaign.`,
       });
       navigate("/content-manager");
     } catch (error: any) {
