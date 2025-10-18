@@ -150,6 +150,40 @@ export default function ContentManager() {
     }
   };
 
+  // Refresh campaign data (for when campaign is regenerated)
+  const handleCampaignUpdate = async () => {
+    if (!selectedCampaign) return;
+
+    try {
+      // Refetch the campaign data
+      const { data: updatedCampaign, error: campaignError } = await supabase
+        .from("content_plans")
+        .select("*")
+        .eq("id", selectedCampaign.id)
+        .single();
+
+      if (campaignError) throw campaignError;
+
+      // Refetch posts
+      const { data: posts, error: postsError } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("content_plan_id", selectedCampaign.id)
+        .eq("deleted", false)
+        .order("scheduled_date", { ascending: true });
+
+      if (postsError) throw postsError;
+
+      setSelectedCampaign(updatedCampaign as ContentPlan);
+      setSelectedCampaignPosts((posts || []) as any);
+    } catch (error: any) {
+      console.error("Error refreshing campaign:", error);
+      toast.error("Failed to refresh campaign data", {
+        description: error.message || "Please try again.",
+      });
+    }
+  };
+
   // Show loading state only on initial load (when we have no data yet)
   if (authLoading || (loading && campaigns.length === 0)) {
     return (
@@ -173,6 +207,7 @@ export default function ContentManager() {
               posts={selectedCampaignPosts}
               onBack={handleBackToCampaigns}
               onPostClick={handlePostClick}
+              onCampaignUpdate={handleCampaignUpdate}
             />
           </div>
         </div>
