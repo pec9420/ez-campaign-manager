@@ -33,11 +33,15 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('[orchestrate-campaign] Request body:', requestBody);
 
-    const { content_plan_id } = requestBody;
+    const { content_plan_id, dry_run = false } = requestBody;
 
     if (!content_plan_id) {
       console.error('[orchestrate-campaign] Missing content_plan_id in request');
       throw new Error('Missing required parameter: content_plan_id');
+    }
+
+    if (dry_run) {
+      console.log(`[orchestrate-campaign] DRY RUN MODE - No database writes will occur`);
     }
 
     console.log(`[orchestrate-campaign] Starting campaign generation for: ${content_plan_id}`);
@@ -181,20 +185,24 @@ serve(async (req) => {
     // STEP 5: Save strategy + shot list to database
     // ============================================
 
-    const { error: updateError } = await supabaseClient
-      .from('content_plans')
-      .update({
-        strategy_framework: strategy,
-        shot_list: shotList
-      })
-      .eq('id', content_plan_id);
+    if (!dry_run) {
+      const { error: updateError } = await supabaseClient
+        .from('content_plans')
+        .update({
+          strategy_framework: strategy,
+          shot_list: shotList
+        })
+        .eq('id', content_plan_id);
 
-    if (updateError) {
-      console.error('[orchestrate-campaign] Error saving strategy/shot list:', updateError);
-      throw updateError;
+      if (updateError) {
+        console.error('[orchestrate-campaign] Error saving strategy/shot list:', updateError);
+        throw updateError;
+      }
+
+      console.log('[orchestrate-campaign] Strategy and shot list saved to database');
+    } else {
+      console.log('[orchestrate-campaign] DRY RUN - Skipping strategy/shot list database save');
     }
-
-    console.log('[orchestrate-campaign] Strategy and shot list saved to database');
 
     // ============================================
     // STEP 6: Generate all posts in parallel
@@ -274,31 +282,43 @@ serve(async (req) => {
       deleted: false
     }));
 
-    const { data: insertedPosts, error: insertError } = await supabaseClient
-      .from('posts')
-      .insert(postsToInsert)
-      .select();
+    let insertedPosts = null;
 
-    if (insertError) {
-      console.error('[orchestrate-campaign] Error inserting posts:', insertError);
-      throw insertError;
+    if (!dry_run) {
+      const { data, error: insertError } = await supabaseClient
+        .from('posts')
+        .insert(postsToInsert)
+        .select();
+
+      if (insertError) {
+        console.error('[orchestrate-campaign] Error inserting posts:', insertError);
+        throw insertError;
+      }
+
+      insertedPosts = data;
+      console.log(`[orchestrate-campaign] ${insertedPosts?.length} posts inserted into database`);
+    } else {
+      console.log('[orchestrate-campaign] DRY RUN - Skipping post insertion (would insert ${postsToInsert.length} posts)');
+      insertedPosts = postsToInsert; // Return what would have been inserted
     }
-
-    console.log(`[orchestrate-campaign] ${insertedPosts?.length} posts inserted into database`);
 
     // ============================================
     // STEP 8: Update user's posts counter
     // ============================================
 
-    const { error: counterError } = await supabaseClient
-      .from('users')
-      .update({
-        posts_created_this_period: (user.posts_created_this_period || 0) + posts.length
-      })
-      .eq('id', contentPlan.user_id);
+    if (!dry_run) {
+      const { error: counterError } = await supabaseClient
+        .from('users')
+        .update({
+          posts_created_this_period: (user.posts_created_this_period || 0) + posts.length
+        })
+        .eq('id', contentPlan.user_id);
 
-    if (counterError) {
-      console.error('[orchestrate-campaign] Error updating user counter:', counterError);
+      if (counterError) {
+        console.error('[orchestrate-campaign] Error updating user counter:', counterError);
+      }
+    } else {
+      console.log('[orchestrate-campaign] DRY RUN - Skipping user counter update');
     }
 
     // ============================================
@@ -310,12 +330,21 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        dry_run,
         posts_created: insertedPosts?.length || 0,
         shots_created: shotList.shots.length,
         strategy: {
           phases: strategy.weekly_phases.length,
           themes: strategy.content_themes.length
-        }
+        },
+        // Include full details in dry-run mode for debugging
+        ...(dry_run ? {
+          preview: {
+            strategy,
+            shotList,
+            posts: insertedPosts?.slice(0, 3) // First 3 posts as preview
+          }
+        } : {})
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

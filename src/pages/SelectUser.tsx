@@ -117,7 +117,7 @@ const SelectUser = () => {
               <CardHeader>
                 <div className="flex items-start justify-between mb-2">
                   <CardTitle className="text-lg">
-                    {user.brand_hub?.business_name || 'No Business Name'}
+                    {user.email}
                   </CardTitle>
                   <Badge
                     variant={user.subscription_tier === 'growth' ? 'default' : 'secondary'}
@@ -126,29 +126,41 @@ const SelectUser = () => {
                     {user.subscription_tier}
                   </Badge>
                 </div>
-                <CardDescription className="text-sm">
-                  {user.email}
-                </CardDescription>
+                {user.brand_hub?.business_name && (
+                  <CardDescription className="text-sm font-medium">
+                    {user.brand_hub.business_name}
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">What they sell:</p>
-                    <p className="text-sm font-medium line-clamp-2">
-                      {user.brand_hub?.what_you_sell || 'No description'}
-                    </p>
-                  </div>
-
-                  {user.brand_hub?.brand_vibe_words && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Brand Vibe:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {user.brand_hub.brand_vibe_words.map((vibe) => (
-                          <Badge key={vibe} variant="outline" className="text-xs">
-                            {vibe}
-                          </Badge>
-                        ))}
+                  {user.brand_hub ? (
+                    <>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">What they sell:</p>
+                        <p className="text-sm font-medium line-clamp-2">
+                          {user.brand_hub.what_you_sell}
+                        </p>
                       </div>
+
+                      {user.brand_hub.brand_vibe_words && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Brand Vibe:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {user.brand_hub.brand_vibe_words.map((vibe) => (
+                              <Badge key={vibe} variant="outline" className="text-xs">
+                                {vibe}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="py-2">
+                      <p className="text-sm text-muted-foreground italic">
+                        No brand hub created yet
+                      </p>
                     </div>
                   )}
 

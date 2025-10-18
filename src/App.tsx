@@ -14,6 +14,7 @@ import BrandHub from "./pages/BrandHub";
 import ContentManager from "./pages/ContentManager";
 import CreateCampaign from "./pages/CreateCampaign";
 import Settings from "./pages/Settings";
+import Developer from "./pages/Developer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/content-manager" element={<AppLayout><ContentManager /></AppLayout>} />
           <Route path="/create-campaign" element={<AppLayout><CreateCampaign /></AppLayout>} />
           <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+          <Route path="/developer" element={<AppLayout><Developer /></AppLayout>} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

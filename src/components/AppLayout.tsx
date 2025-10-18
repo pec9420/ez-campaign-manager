@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Sparkles, LayoutDashboard, FileText, Palette, Settings, ChevronDown, LogOut } from "lucide-react";
+import { Sparkles, LayoutDashboard, FileText, Palette, Settings, ChevronDown, LogOut, Code2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserData {
@@ -113,6 +113,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       title: "Brand Hub",
       icon: Palette,
       path: "/brand-hub",
+    },
+    {
+      title: "Developer",
+      icon: Code2,
+      path: "/developer",
     },
     {
       title: "Settings",
