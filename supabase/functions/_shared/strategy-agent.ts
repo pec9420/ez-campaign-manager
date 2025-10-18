@@ -8,7 +8,7 @@
  * - Shot requirements (what needs to be filmed)
  */
 
-import Anthropic from "npm:@anthropic-ai/sdk@0.32.1";
+import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.32.1";
 
 interface ContextPackage {
   brand_voice_profile: any;
@@ -100,7 +100,8 @@ export async function generateStrategy(
 
   } catch (error) {
     console.error("Strategy generation error:", error);
-    throw new Error(`Failed to generate strategy: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to generate strategy: ${errorMessage}`);
   }
 }
 

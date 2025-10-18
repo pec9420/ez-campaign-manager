@@ -7,7 +7,7 @@
  * - Includes themes, props, locations, DIY tips
  */
 
-import Anthropic from "npm:@anthropic-ai/sdk@0.32.1";
+import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.32.1";
 
 interface ContextPackage {
   brand_voice_profile: any;
@@ -125,7 +125,8 @@ export async function generateShotList(
 
   } catch (error) {
     console.error("Shot list generation error:", error);
-    throw new Error(`Failed to generate shot list: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to generate shot list: ${errorMessage}`);
   }
 }
 

@@ -11,7 +11,7 @@
  * - Content strategy metadata
  */
 
-import Anthropic from "npm:@anthropic-ai/sdk@0.32.1";
+import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.32.1";
 
 interface ContextPackage {
   brand_voice_profile: any;
@@ -140,7 +140,8 @@ export async function generatePost(
 
   } catch (error) {
     console.error(`Post ${postDetails.post_number} generation error:`, error);
-    throw new Error(`Failed to generate post ${postDetails.post_number}: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to generate post ${postDetails.post_number}: ${errorMessage}`);
   }
 }
 
