@@ -3,16 +3,16 @@ project_id = "sukyrypnsoyvlxrezlgv"
 [functions]
 
 [functions.check-usage-limits]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-content-plan]
-verify_jwt = true
+verify_jwt = false
 
 [functions.regenerate-post]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-shot-list]
-verify_jwt = true
+verify_jwt = false
 
 [functions.orchestrate-campaign]
-verify_jwt = true
+verify_jwt = false
