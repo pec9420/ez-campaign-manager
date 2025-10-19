@@ -286,8 +286,8 @@ serve(async (req) => {
     const BATCH_SIZE = 4; // Process 4 posts at a time
     const BATCH_DELAY = 2000; // 2 second delay between batches
     
-    const posts = [];
-    const errors = [];
+    const posts: any[] = [];
+    const errors: Array<{ post_number: number; error: string }> = [];
     const batchCount = Math.ceil(allPostDetails.length / BATCH_SIZE);
     
     console.log(`[orchestrate-campaign] Processing ${batchCount} batches of ${BATCH_SIZE} posts`);

@@ -145,6 +145,13 @@ export async function generatePost(
     const jsonText = jsonMatch[1] || jsonMatch[0];
     const post = JSON.parse(jsonText);
 
+    // Validate and fix behavioral_trigger to match database constraint
+    const validTriggers = ['reciprocity', 'FOMO', 'scarcity', 'trust', 'nostalgia', 'belonging', 'curiosity', 'urgency'];
+    if (!validTriggers.includes(post.behavioral_trigger)) {
+      console.warn(`[post-generator] Invalid behavioral_trigger: "${post.behavioral_trigger}", defaulting to 'curiosity'`);
+      post.behavioral_trigger = 'curiosity';
+    }
+
     console.log(`[post-generator] ✓ Post ${postDetails.post_number} parsed successfully`);
 
     // Ensure required fields are present
@@ -261,7 +268,7 @@ CONTENT REQUIREMENTS:
 6. **Content Strategy Metadata:**
    - purpose: What this post aims to achieve (awareness/consideration/conversion)
    - core_message: Main takeaway in one sentence (<150 chars)
-   - behavioral_trigger: Psychological trigger (FOMO, curiosity, social proof, etc.)
+   - behavioral_trigger: Must be EXACTLY ONE of these: reciprocity, FOMO, scarcity, trust, nostalgia, belonging, curiosity, urgency
    - format: Content format/style (tutorial, testimonial, behind-the-scenes, product showcase)
    - strategy_type: Category (educational, promotional, engagement, testimonial, behind-the-scenes)
    - tracking_focus: Primary KPI (views, saves, shares, comments, clicks, DMs, redemptions)
@@ -311,7 +318,7 @@ OUTPUT FORMAT (valid JSON only, no markdown):
   },
   "purpose": "Build anticipation and curiosity for upcoming launch",
   "core_message": "New winter candles coming soon, made with care and excitement",
-  "behavioral_trigger": "Curiosity + behind-the-scenes exclusivity",
+  "behavioral_trigger": "curiosity",
   "format": "Behind-the-scenes process video",
   "strategy_type": "behind-the-scenes",
   "tracking_focus": "saves",
