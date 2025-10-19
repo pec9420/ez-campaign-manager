@@ -371,7 +371,6 @@ serve(async (req) => {
       purpose: post.purpose,
       core_message: post.core_message,
       behavioral_trigger: post.behavioral_trigger,
-      format: post.format,
       strategy_type: post.strategy_type,
       tracking_focus: post.tracking_focus,
       cta: post.cta,
